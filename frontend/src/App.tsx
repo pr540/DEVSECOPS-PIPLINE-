@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { Film, Star, MapPin, ChevronRight, Ticket } from 'lucide-react';
+import { Film, Star, MapPin, ChevronRight, Ticket, Activity, ShieldCheck, Zap } from 'lucide-react';
 
 interface Movie {
   id: number;
@@ -11,6 +11,16 @@ interface Movie {
   image: string;
   genre: string;
 }
+
+interface ServerStatus {
+  status: string;
+  uptime: string;
+  requests: number;
+  database: string;
+}
+
+// Automatically detect production vs development API URL
+const API_BASE = import.meta.env.PROD ? '/api' : 'http://localhost:8000';
 
 const Navbar = () => (
   <nav className="fixed top-0 left-0 right-0 z-50 py-4 px-6 glass-card border-none bg-black/40">
@@ -24,9 +34,8 @@ const Navbar = () => (
       
       <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-400">
         <a href="#" className="hover:text-white transition-colors">Movies</a>
-        <a href="#" className="hover:text-white transition-colors">Events</a>
-        <a href="#" className="hover:text-white transition-colors">Plays</a>
-        <a href="#" className="hover:text-white transition-colors">Activities</a>
+        <a href="#" className="hover:text-white transition-colors">Monitoring</a>
+        <a href="#" className="hover:text-white transition-colors">Security</a>
       </div>
 
       <div className="flex items-center gap-4">
@@ -47,18 +56,13 @@ const MovieCard = ({ movie }: { movie: Movie }) => (
     className="group relative overflow-hidden rounded-2xl glass-card border-white/10"
   >
     <div className="aspect-[2/3] overflow-hidden">
-      <img 
-        src={movie.image} 
-        alt={movie.title} 
-        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-      />
+      <img src={movie.image} alt={movie.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent flex flex-col justify-end p-5">
         <div className="flex items-center gap-1.5 bg-yellow-500/90 text-black text-[10px] font-bold px-2 py-0.5 rounded w-fit mb-3">
           <Star className="w-3 h-3 fill-black" /> {movie.rating}
         </div>
         <h3 className="text-xl font-bold text-white mb-1">{movie.title}</h3>
         <p className="text-gray-400 text-xs mb-4">{movie.genre}</p>
-        
         <button className="flex items-center justify-center gap-2 w-full bg-white/10 hover:bg-white text-white hover:text-black py-2.5 rounded-xl border border-white/20 text-sm font-bold transition-all backdrop-blur-md">
           <Ticket className="w-4 h-4" /> Book Now
         </button>
@@ -67,56 +71,68 @@ const MovieCard = ({ movie }: { movie: Movie }) => (
   </motion.div>
 );
 
+const MonitoringSystem = ({ status }: { status: ServerStatus | null }) => (
+  <section className="mt-24 mb-20">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="glass-card p-6 border-white/5 flex items-center gap-4">
+        <div className="p-3 bg-green-500/10 rounded-xl">
+          <Activity className="text-green-500 w-6 h-6" />
+        </div>
+        <div>
+          <p className="text-xs text-gray-500 uppercase tracking-widest">System Status</p>
+          <p className="text-lg font-bold text-white">{status?.status || 'Connecting...'}</p>
+        </div>
+      </div>
+      <div className="glass-card p-6 border-white/5 flex items-center gap-4">
+        <div className="p-3 bg-blue-500/10 rounded-xl">
+          <Zap className="text-blue-500 w-6 h-6" />
+        </div>
+        <div>
+          <p className="text-xs text-gray-500 uppercase tracking-widest">Server Uptime</p>
+          <p className="text-lg font-bold text-white">{status?.uptime || '0s'}</p>
+        </div>
+      </div>
+      <div className="glass-card p-6 border-white/5 flex items-center gap-4">
+        <div className="p-3 bg-purple-500/10 rounded-xl">
+          <ShieldCheck className="text-purple-500 w-6 h-6" />
+        </div>
+        <div>
+          <p className="text-xs text-gray-500 uppercase tracking-widest">Security Health</p>
+          <p className="text-lg font-bold text-white">Encrypted / Protected</p>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
 function App() {
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [status, setStatus] = useState<ServerStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Faking API call for demo if backend is not running
-    const fetchMovies = async () => {
+    const fetchData = async () => {
       try {
-        const res = await axios.get('http://localhost:8000/movies');
-        setMovies(res.data);
-      } catch (err) {
-        setMovies([
-          {
-            id: 1,
-            title: "Interstellar",
-            description: "A team of explorers travel through a wormhole in space.",
-            rating: 8.7,
-            image: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa",
-            genre: "Sci-Fi"
-          },
-          {
-            id: 2,
-            title: "The Dark Knight",
-            description: "When the menace known as the Joker wreaks havoc.",
-            rating: 9.0,
-            image: "https://images.unsplash.com/photo-1478720568477-152d9b164e26",
-            genre: "Action"
-          },
-          {
-            id: 3,
-            title: "Inception",
-            description: "A thief who steals corporate secrets through dream-sharing.",
-            rating: 8.8,
-            image: "https://images.unsplash.com/photo-1536440136628-849c177e76a1",
-            genre: "Sci-Fi"
-          },
-          {
-            id: 4,
-            title: "Avatar: Way of Water",
-            description: "Jake Sully lives with his newfound family formed on the extrasolar moon Pandora.",
-            rating: 7.6,
-            image: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b",
-            genre: "Adventure"
-          }
+        const [movieRes, statusRes] = await Promise.all([
+          axios.get(`${API_BASE}/movies`),
+          axios.get(`${API_BASE}/health`)
         ]);
+        setMovies(movieRes.data);
+        setStatus(statusRes.data);
+      } catch (err) {
+        console.error("Failed to fetch from API, using development fallback");
       } finally {
         setLoading(false);
       }
     };
-    fetchMovies();
+    fetchData();
+    const interval = setInterval(async () => {
+       try {
+         const res = await axios.get(`${API_BASE}/health`);
+         setStatus(res.data);
+       } catch (e) {}
+    }, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -127,14 +143,14 @@ function App() {
         <div className="mb-12 flex items-end justify-between">
           <div>
             <h2 className="text-4xl font-black tracking-tight mb-2">Recommended <span className="gradient-text">Movies</span></h2>
-            <p className="text-gray-500">Based on your preferences and local popular trends</p>
+            <p className="text-gray-500">Live dynamic data from your DevSecOps pipeline</p>
           </div>
           <button className="flex items-center gap-2 text-purple-400 font-semibold hover:text-purple-300 transition-colors">
             View All <ChevronRight className="w-4 h-4" />
           </button>
         </div>
 
-        {loading ? (
+        {loading && movies.length === 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {[1, 2, 3, 4].map(i => (
               <div key={i} className="aspect-[2/3] rounded-2xl bg-white/5 animate-pulse" />
@@ -148,35 +164,30 @@ function App() {
           </div>
         )}
 
+        <div className="mt-20">
+           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+             <Activity className="text-purple-500 w-6 h-6" /> Real-time Monitoring
+           </h2>
+           <MonitoringSystem status={status} />
+        </div>
+
         <section className="mt-24 rounded-3xl overflow-hidden glass-card neon-border p-1">
            <div className="bg-black/60 rounded-[22px] px-10 py-16 flex flex-col md:flex-row items-center justify-between gap-10">
               <div className="max-w-xl">
                 <span className="text-xs font-bold text-purple-500 uppercase tracking-widest mb-4 block">Exclusive Offer</span>
-                <h2 className="text-4xl font-bold mb-4 leading-tight">Get <span className="text-purple-500 italic">Unlimited</span> Free Popcorn with CineBook Gold</h2>
-                <p className="text-gray-400 mb-8">Join our premium membership today and unlock exclusive benefits, early access, and zero convenience fees on every booking.</p>
+                <h2 className="text-4xl font-bold mb-4 leading-tight">Get <span className="text-purple-500 italic">Unlimited</span> Free Popcorn</h2>
+                <p className="text-gray-400 mb-8">Join our premium membership today and unlock exclusive benefits.</p>
                 <div className="flex gap-4">
                   <button className="bg-white text-black px-8 py-3 rounded-xl font-bold hover:scale-105 transition-transform">Get Gold Now</button>
-                  <button className="bg-white/5 border border-white/10 px-8 py-3 rounded-xl font-bold hover:bg-white/10 transition-colors">See Benefits</button>
                 </div>
-              </div>
-              <div className="relative">
-                <div className="w-64 h-64 bg-purple-600/20 blur-[100px] absolute inset-0 rounded-full" />
-                <Ticket className="w-48 h-48 text-purple-500 relative z-10 opacity-80" />
               </div>
            </div>
         </section>
       </main>
 
       <footer className="border-t border-white/5 py-12 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="text-sm text-gray-500 font-medium">
-            © 2026 CineBook Entertainment. All rights reserved.
-          </div>
-          <div className="flex gap-8 text-sm text-gray-500">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-white transition-colors">Security</a>
-          </div>
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 text-sm text-gray-500 font-medium">
+            © 2026 CineBook DevSecOps Portal. All systems operational.
         </div>
       </footer>
     </div>

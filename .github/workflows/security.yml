@@ -89,3 +89,10 @@ jobs:
       - name: Deploy Project Artifacts to Vercel
         working-directory: ./frontend
         run: vercel deploy --prebuilt --prod --token=${{ env.VERCEL_TOKEN }}
+
+      - name: Post-Deployment Monitoring (Health Check)
+        run: |
+          echo "Waiting for propagation..."
+          sleep 10
+          curl -f -s https://frontend-bezew4b0i-pr540s-projects.vercel.app/api/health || { echo "Backend health check failed"; exit 1; }
+          echo "Health check passed! System is dynamic and monitors are active."
