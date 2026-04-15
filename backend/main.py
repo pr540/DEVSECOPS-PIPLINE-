@@ -48,11 +48,11 @@ class MovieSchema(BaseModel):
 
 # --- API ENDPOINTS ---
 
-@app.get("/")
+@app.get("/api")
 def read_root():
     return {"message": "Welcome to TicketBooking DevSecOps API", "status": "operational"}
 
-@app.get("/health")
+@app.get("/api/health")
 def health_check():
     return {
         "status": "healthy",
@@ -61,7 +61,7 @@ def health_check():
         "database": "connected"
     }
 
-@app.get("/movies", response_model=List[MovieSchema])
+@app.get("/api/movies", response_model=List[MovieSchema])
 def get_movies(db: Session = Depends(get_db)):
     movies = db.query(MovieModel).all()
     
@@ -78,7 +78,7 @@ def get_movies(db: Session = Depends(get_db)):
         
     return movies
 
-@app.post("/movies", response_model=MovieSchema)
+@app.post("/api/movies", response_model=MovieSchema)
 def create_movie(movie: MovieSchema, db: Session = Depends(get_db)):
     db_movie = MovieModel(**movie.dict(exclude={'id'}))
     db.add(db_movie)
