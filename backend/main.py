@@ -17,7 +17,7 @@ app = FastAPI(
 start_time = time.time()
 metrics = {"requests_total": 0, "db_status": "healthy"}
 
-# --- SECURITY ---
+# --- SECURITY & CORS ---
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,6 +25,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# --- MODELS ---
+class MovieSchema(BaseModel):
+    id: Optional[int] = None
+    title: str
+    description: str
+    rating: float
+    image: str
+    genre: str
+
+    class Config:
+        from_attributes = True
 
 # --- ROUTES ---
 router = APIRouter()
@@ -42,7 +54,7 @@ def health_check():
         "database": metrics["db_status"]
     }
 
-@router.get("/movies", response_model=List[dict])
+@router.get("/movies", response_model=List[MovieSchema])
 def get_movies(db: Session = Depends(get_db)):
     metrics["requests_total"] += 1
     movies = db.query(MovieModel).all()
@@ -54,16 +66,15 @@ def get_movies(db: Session = Depends(get_db)):
         db.add_all(seed_data)
         db.commit()
         movies = db.query(MovieModel).all()
-    return [
-        {
-            "id": m.id,
-            "title": m.title,
-            "description": m.description,
-            "rating": m.rating,
-            "image": m.image,
-            "genre": m.genre
-        } for m in movies
-    ]
+    return movies
+
+@router.post("/movies", response_model=MovieSchema)
+def create_movie(movie: MovieSchema, db: Session = Depends(get_db)):
+    db_movie = MovieModel(**movie.dict(exclude={'id'}))
+    db.add(db_movie)
+    db.commit()
+    db.refresh(db_movie)
+    return db_movie
 
 # Include router for both / and /api (to handle Vercel rewrites reliably)
 app.include_router(router)
