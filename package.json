@@ -1,0 +1,25 @@
+{
+  "name": "devsecops-pipline-",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pr540/DEVSECOPS-PIPLINE-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/pr540/DEVSECOPS-PIPLINE-/issues"
+  },
+  "homepage": "https://github.com/pr540/DEVSECOPS-PIPLINE-#readme",
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}

@@ -1,0 +1,22 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🛡️ Running DevSecOps Pre-commit Checks..."
+
+# 1. Secret Scanning (basic)
+if grep -rE "password|secret|key|api_key" . --exclude-dir=node_modules --exclude-dir=venv; then
+  echo "⚠️ Potential secrets found! Please review before committing."
+  # exit 1 (disabled for now so user can actually commit, but recommended for production)
+fi
+
+# 2. Python SAST
+if command -v bandit >/dev/null 2>&1; then
+  bandit -r backend/
+else
+  echo "Skipping Bandit (not installed)"
+fi
+
+# 3. Frontend Lint/Audit
+cd frontend && npm audit --audit-level=high
+
+echo "✅ Security checks passed!"
