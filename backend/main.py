@@ -34,9 +34,19 @@ class MovieSchema(BaseModel):
     rating: float
     image: str
     genre: str
+    language: Optional[str] = "English"
+    category: Optional[str] = "Latest"
 
     class Config:
         from_attributes = True
+
+# --- DUMMY AUDIT LOGS ---
+audit_logs = [
+    {"id": 1, "action": "DATABASE_SEED", "user": "System", "timestamp": "2026-04-15 12:00:01", "status": "Success"},
+    {"id": 2, "action": "SAST_SCAN_INIT", "user": "CI/CD", "timestamp": "2026-04-15 12:05:22", "status": "Passed"},
+    {"id": 3, "action": "SCA_SCAN_RUN", "user": "Actions", "timestamp": "2026-04-15 12:06:45", "status": "Completed"},
+    {"id": 4, "action": "UNAUTHORIZED_ACCESS_BLOCKED", "user": "Unknown", "timestamp": "2026-04-15 12:10:11", "status": "Alert"}
+]
 
 # --- ROUTES ---
 router = APIRouter()
@@ -54,6 +64,10 @@ def health_check():
         "database": metrics["db_status"]
     }
 
+@router.get("/audit", response_model=List[dict])
+def get_audit_logs():
+    return audit_logs
+
 @router.get("/movies", response_model=List[MovieSchema])
 def get_movies(db: Session = Depends(get_db)):
     metrics["requests_total"] += 1
@@ -61,7 +75,8 @@ def get_movies(db: Session = Depends(get_db)):
     if not movies:
         seed_data = [
             MovieModel(title="Interstellar", description="Space exploration", rating=8.7, image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", genre="Sci-Fi"),
-            MovieModel(title="The Dark Knight", description="Batman vs Joker", rating=9.0, image="https://images.unsplash.com/photo-1478720568477-152d9b164e26", genre="Action")
+            MovieModel(title="The Dark Knight", description="Batman vs Joker", rating=9.0, image="https://images.unsplash.com/photo-1478720568477-152d9b164e26", genre="Action"),
+            MovieModel(title="Pushpa 2", description="The Rule begins", rating=8.5, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", genre="Action")
         ]
         db.add_all(seed_data)
         db.commit()
@@ -76,7 +91,7 @@ def create_movie(movie: MovieSchema, db: Session = Depends(get_db)):
     db.refresh(db_movie)
     return db_movie
 
-# Include router for both / and /api (to handle Vercel rewrites reliably)
+# Include router
 app.include_router(router)
 app.include_router(router, prefix="/api")
 

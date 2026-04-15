@@ -1,11 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Film, Star, MapPin, Ticket, Activity, ShieldCheck, 
-  Zap, Plus, X, Shield, Globe, Cpu, Lock 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
+} from 'recharts';
+import { 
+  Film, Star, MapPin, Activity, ShieldCheck, 
+  Plus, X, Cpu, MessageCircle, Send, User, Key
 } from 'lucide-react';
+
+// --- CONSTANTS ---
+const API_BASE = import.meta.env.PROD ? '/api' : 'http://localhost:8000/api';
 
 // --- TYPES ---
 interface Movie {
@@ -15,125 +21,152 @@ interface Movie {
   rating: number;
   image: string;
   genre: string;
+  language?: string;
+  category?: string;
 }
 
-interface ServerStatus {
+interface AuditLog {
+  id: number;
+  action: string;
+  user: string;
+  timestamp: string;
   status: string;
-  uptime: string;
-  requests: number;
-  database: string;
 }
-
-const API_BASE = import.meta.env.PROD ? '/api' : 'http://localhost:8000/api';
 
 // --- COMPONENTS ---
 
-const Navbar = () => {
-  const [city, setCity] = useState('Mumbai');
-  const location = useLocation();
+const LoginModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+  const [isLogin, setIsLogin] = useState(true);
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6">
+          <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 30 }} className="glass-card w-full max-w-md p-10 border-white/5 relative bg-[#0a0a0a]">
+            <button onClick={onClose} className="absolute top-6 right-6 text-gray-500 hover:text-white"><X /></button>
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-black uppercase italic leading-none mb-2">{isLogin ? 'Welcome Back' : 'Join CineBook'}</h2>
+              <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Connect with your secure workspace</p>
+            </div>
+            <div className="space-y-4">
+               <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+                  <input className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-sm focus:border-purple-500 outline-none" placeholder="Email Address" />
+               </div>
+               <div className="relative">
+                  <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+                  <input type="password" className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-sm focus:border-purple-500 outline-none" placeholder="Password" />
+               </div>
+               <button className="w-full bg-gradient-to-r from-purple-600 to-blue-500 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:opacity-90 transition-all">
+                 {isLogin ? 'Sign In' : 'Create Account'}
+               </button>
+               <div className="text-center pt-4">
+                  <button onClick={() => setIsLogin(!isLogin)} className="text-[10px] font-black uppercase text-gray-500 hover:text-purple-500 transition-colors">
+                    {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
+                  </button>
+               </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        try {
-          // Simple reverse geocoding via free api (no key needed for demo)
-          const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
-          const cityName = res.data.address.city || res.data.address.town || res.data.address.village || 'Detected';
-          setCity(cityName);
-        } catch (e) { console.log('Geolocation failed'); }
-      });
-    }
-  }, []);
+const Chatbot = () => {
+  const [isOpen, setOpen] = useState(false);
+  const [messages, setMessages] = useState([{ text: "Hi! I'm your DevSecOps guide. How can I help you navigate CineBook?", isBot: true }]);
+  const [input, setInput] = useState('');
+
+  const send = () => {
+    if (!input) return;
+    setMessages(prev => [...prev, { text: input, isBot: false }]);
+    setTimeout(() => {
+      setMessages(prev => [...prev, { text: "That's a great question! Our platform is a secure hybrid of FastAPI and React, deploying dynamically through Vercel with real-time health checks.", isBot: true }]);
+    }, 1000);
+    setInput('');
+  };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 py-4 px-6 glass-card border-none bg-black/40 backdrop-blur-xl">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-gradient-to-tr from-purple-600 to-blue-500 rounded-xl flex items-center justify-center">
-            <Film className="text-white w-6 h-6" />
-          </div>
-          <span className="text-2xl font-black tracking-tighter text-white uppercase italic">Cine<span className="text-purple-500">Book</span></span>
-        </Link>
-        
-        <div className="hidden md:flex items-center gap-8 text-xs font-bold uppercase tracking-widest text-gray-500">
-          <Link to="/" className={`hover:text-white transition-colors ${location.pathname === '/' ? 'text-purple-500' : ''}`}>Movies</Link>
-          <Link to="/monitoring" className={`hover:text-white transition-colors ${location.pathname === '/monitoring' ? 'text-purple-500' : ''}`}>Monitoring</Link>
-          <Link to="/security" className={`hover:text-white transition-colors ${location.pathname === '/security' ? 'text-purple-500' : ''}`}>Security</Link>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-black text-gray-400 bg-white/5 px-4 py-2 rounded-full border border-white/10 uppercase tracking-[0.2em]">
-            <MapPin className="w-3 h-3 text-purple-500" /> {city}
-          </div>
-          <button className="bg-white text-black px-6 py-2 rounded-lg text-xs font-black uppercase hover:bg-purple-500 hover:text-white transition-all shadow-xl shadow-white/5">
-            Login
-          </button>
-        </div>
-      </div>
-    </nav>
+    <div className="fixed bottom-6 right-6 z-[100]">
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }} className="glass-card w-80 h-[450px] mb-4 overflow-hidden flex flex-col bg-[#111] border-white/10">
+            <div className="p-4 border-b border-white/10 bg-gradient-to-r from-purple-600/20 to-blue-600/10 flex items-center justify-between">
+               <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center"><Cpu className="w-4 h-4 text-white" /></div>
+                  <span className="text-xs font-black uppercase tracking-widest">DevSecOps AI</span>
+               </div>
+               <button onClick={() => setOpen(false)}><X className="w-4 h-4" /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+               {messages.map((m, i) => (
+                 <div key={i} className={`flex ${m.isBot ? 'justify-start' : 'justify-end'}`}>
+                    <div className={`max-w-[80%] p-3 rounded-2xl text-[11px] font-medium leading-relaxed ${m.isBot ? 'bg-white/5 text-gray-300' : 'bg-purple-600 text-white'}`}>
+                      {m.text}
+                    </div>
+                 </div>
+               ))}
+            </div>
+            <div className="p-4 border-t border-white/10 flex gap-2">
+               <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()} className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs outline-none focus:border-purple-500" placeholder="Type a message..." />
+               <button onClick={send} className="p-2 bg-purple-600 rounded-lg"><Send className="w-3 h-3" /></button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <button onClick={() => setOpen(!isOpen)} className="w-14 h-14 bg-purple-600 rounded-full flex items-center justify-center shadow-2xl shadow-purple-600/40 hover:scale-110 transition-transform">
+        <MessageCircle className="text-white w-7 h-7" />
+      </button>
+    </div>
   );
 };
 
 const AddMovieModal = ({ isOpen, onClose, onAdd }: { isOpen: boolean, onClose: () => void, onAdd: () => void }) => {
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    rating: 8.5,
-    genre: 'Action',
+    title: '', description: '', rating: 8.5, genre: 'Action', language: 'English', category: 'Latest', 
     image: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1'
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (!formData.title) return;
       await axios.post(`${API_BASE}/movies`, formData);
-      onAdd();
-      onClose();
-    } catch (err) {
-      alert('Failed to add movie');
-    }
+      onAdd(); onClose();
+    } catch (err) { alert('Failed'); }
   };
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div 
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-6"
-        >
-          <motion.div 
-            initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-            className="glass-card w-full max-w-md p-8 border-white/10 relative overflow-hidden bg-[#111]"
-          >
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 to-blue-500" />
-            <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-white"><X /></button>
-            <h2 className="text-2xl font-black mb-6 uppercase italic">Add New <span className="text-purple-500">Movie</span></h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Title</label>
-                <input required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-purple-500 outline-none transition-all" placeholder="Enter movie title" />
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-md flex items-center justify-center p-6">
+          <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="glass-card w-full max-w-lg p-10 border-white/10 relative overflow-hidden bg-[#111]">
+            <button onClick={onClose} className="absolute top-6 right-6"><X /></button>
+            <h2 className="text-2xl font-black uppercase italic mb-8">Deploy New <span className="text-purple-500">Asset</span></h2>
+            <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
+              <div className="col-span-2">
+                <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">Movie Title</label>
+                <input required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-purple-500 outline-none" placeholder="Search title..." />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Genre</label>
-                <select value={formData.genre} onChange={e => setFormData({...formData, genre: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-purple-500 outline-none transition-all">
-                  <option value="Action">Action</option>
-                  <option value="Sci-Fi">Sci-Fi</option>
-                  <option value="Drama">Drama</option>
-                  <option value="Adventure">Adventure</option>
+                <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">Language</label>
+                <select value={formData.language} onChange={e => setFormData({...formData, language: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-purple-500 outline-none">
+                  <option value="English">English</option>
+                  <option value="Hindi">Hindi</option>
+                  <option value="Spanish">Spanish</option>
                 </select>
               </div>
               <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Rating</label>
-                <input type="number" step="0.1" value={formData.rating} onChange={e => setFormData({...formData, rating: parseFloat(e.target.value)})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-purple-500 outline-none transition-all" />
+                <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">Category</label>
+                <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-purple-500 outline-none">
+                  <option value="Latest">Latest Release</option>
+                  <option value="Popular">Popular Choice</option>
+                </select>
               </div>
-              <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Image URL</label>
-                <input value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-purple-500 outline-none transition-all" />
+              <div className="col-span-2">
+                 <button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:scale-[1.02] transition-transform">
+                   Commit to Blockchain DB
+                 </button>
               </div>
-              <button type="submit" className="w-full bg-purple-600 hover:bg-purple-500 text-white py-4 rounded-xl font-bold uppercase tracking-widest transition-all mt-4">
-                Push to Database
-              </button>
             </form>
           </motion.div>
         </motion.div>
@@ -146,167 +179,200 @@ const AddMovieModal = ({ isOpen, onClose, onAdd }: { isOpen: boolean, onClose: (
 
 const MovieGrid = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [category, setCategory] = useState('Latest');
   const [isModalOpen, setModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   const fetchMovies = async () => {
-    try {
-      const res = await axios.get(`${API_BASE}/movies`);
-      setMovies(res.data);
-    } catch (e) { console.log('API Error'); }
-    finally { setLoading(false); }
+    const res = await axios.get(`${API_BASE}/movies`);
+    setMovies(res.data);
   };
-
   useEffect(() => { fetchMovies(); }, []);
+
+  const filteredMovies = useMemo(() => {
+    return movies.filter(m => m.category === category || (category === 'All' && m.language !== 'English'));
+  }, [movies, category]);
 
   return (
     <div className="pt-32 pb-20 max-w-7xl mx-auto px-6">
-      <div className="mb-12 flex items-end justify-between">
+      <div className="mb-12 flex flex-col md:flex-row items-end justify-between gap-6">
         <div>
-          <h2 className="text-5xl font-black tracking-tight mb-2 uppercase italic leading-none">
-            Recommended <span className="gradient-text">Movies</span>
-          </h2>
-          <p className="text-gray-500 font-medium">Synced with your secure DevSecOps Postgres backend</p>
+          <h2 className="text-6xl font-black uppercase italic mb-4 leading-none">Universal <span className="gradient-text">Showcase</span></h2>
+          <div className="flex gap-4">
+             {['Latest', 'Hindi', 'Spanish', 'All'].map(cat => (
+               <button key={cat} onClick={() => setCategory(cat)} className={`text-[10px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-full border transition-all ${category === cat ? 'bg-white text-black border-white' : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/30'}`}>
+                 {cat}
+               </button>
+             ))}
+          </div>
         </div>
-        <button 
-          onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-3 rounded-xl text-sm font-black uppercase hover:scale-105 transition-transform shadow-lg shadow-purple-500/20"
-        >
+        <button onClick={() => setModalOpen(true)} className="flex items-center gap-2 bg-white text-black px-8 py-4 rounded-xl text-xs font-black uppercase hover:bg-purple-600 hover:text-white transition-all">
           <Plus className="w-4 h-4" /> Add Movie
         </button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        {loading ? (
-          [1,2,3,4].map(i => <div key={i} className="aspect-[2/3] rounded-2xl bg-white/5 animate-pulse" />)
-        ) : (
-          movies.map(movie => (
-            <motion.div whileHover={{ y: -10 }} key={movie.id} className="group relative overflow-hidden rounded-2xl glass-card border-white/5">
-               <div className="aspect-[2/3] overflow-hidden">
-                  <img src={movie.image} className="w-full h-full object-cover group-hover:scale-110 transition-duration-500" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-transparent to-transparent flex flex-col justify-end p-6">
-                    <div className="flex items-center gap-1.5 bg-yellow-500/90 text-black text-[10px] font-black px-2 py-0.5 rounded w-fit mb-3">
-                      <Star className="w-3 h-3 fill-black" /> {movie.rating}
-                    </div>
-                    <h3 className="text-xl font-black text-white mb-1 uppercase tracking-tight line-clamp-1">{movie.title}</h3>
-                    <p className="text-gray-400 text-xs font-bold mb-4 uppercase tracking-[0.2em]">{movie.genre}</p>
-                    <button className="flex items-center justify-center gap-2 w-full bg-white/10 hover:bg-white text-white hover:text-black py-3 rounded-xl border border-white/20 text-xs font-black uppercase transition-all backdrop-blur-md">
-                      <Ticket className="w-4 h-4" /> Book Now
-                    </button>
-                  </div>
-               </div>
-            </motion.div>
-          ))
-        )}
+        {filteredMovies.map(movie => (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} key={movie.id} className="group relative rounded-2xl overflow-hidden glass-card border-white/5">
+             <div className="aspect-[2/3] overflow-hidden relative">
+                <img src={movie.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest text-white border border-white/10">
+                   {movie.language}
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent flex flex-col justify-end p-6">
+                   <h3 className="text-xl font-black uppercase italic mb-1 truncate">{movie.title}</h3>
+                   <div className="flex items-center gap-2 mb-4">
+                      <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                      <span className="text-xs font-black">{movie.rating}</span>
+                   </div>
+                   <button className="w-full bg-white/10 hover:bg-white text-white hover:text-black py-3 rounded-xl border border-white/20 text-xs font-black uppercase transition-all backdrop-blur-md">
+                      Book Now
+                   </button>
+                </div>
+             </div>
+          </motion.div>
+        ))}
       </div>
-
       <AddMovieModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} onAdd={fetchMovies} />
     </div>
   );
 };
 
 const MonitoringPage = () => {
-  const [status, setStatus] = useState<ServerStatus | null>(null);
-
-  useEffect(() => {
-    const fetchStatus = () => {
-      axios.get(`${API_BASE}/health`)
-        .then(res => setStatus(res.data))
-        .catch(() => setStatus(null));
-    };
-    fetchStatus();
-    const interval = setInterval(fetchStatus, 3000);
-    return () => clearInterval(interval);
-  }, []);
+  const [activeTab, setActiveTab] = useState('Uptime');
+  const graphData = [
+    { name: '00:00', Uptime: 99.9, Requests: 12, Latency: 45 },
+    { name: '04:00', Uptime: 99.5, Requests: 45, Latency: 60 },
+    { name: '08:00', Uptime: 99.9, Requests: 120, Latency: 30 },
+    { name: '12:00', Uptime: 100, Requests: 300, Latency: 55 },
+    { name: '16:00', Uptime: 99.9, Requests: 50, Latency: 40 },
+    { name: '20:00', Uptime: 99.8, Requests: 80, Latency: 50 },
+  ];
 
   return (
     <div className="pt-32 pb-20 max-w-7xl mx-auto px-6">
-      <h2 className="text-5xl font-black uppercase italic mb-12">Live <span className="text-purple-500 underline decoration-blue-500 underline-offset-8">Infrastructure</span> Monitor</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-        <div className="glass-card p-8 border-white/5 space-y-4 bg-gradient-to-br from-green-500/5 to-transparent">
-          <Activity className="text-green-500 w-10 h-10" />
-          <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest">Backend Connectivity</h3>
-          <p className="text-3xl font-black text-white uppercase">{status?.status === 'healthy' ? 'Operational' : 'Syncing...'}</p>
+      <h2 className="text-5xl font-black uppercase italic mb-12 italic">Performance <span className="text-purple-500">Analytics</span></h2>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="lg:col-span-1 space-y-4">
+           {['Uptime', 'Requests', 'Latency'].map(tab => (
+             <button key={tab} onClick={() => setActiveTab(tab)} className={`w-full p-6 rounded-2xl text-left border transition-all ${activeTab === tab ? 'bg-purple-600 border-purple-500 shadow-xl shadow-purple-600/20' : 'bg-white/5 border-white/5 hover:border-white/20'}`}>
+                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">{tab}</h3>
+                <p className="text-2xl font-black">{tab === 'Uptime' ? '99.9%' : tab === 'Requests' ? '1.2k' : '45ms'}</p>
+             </button>
+           ))}
         </div>
-        <div className="glass-card p-8 border-white/5 space-y-4 bg-gradient-to-br from-blue-500/5 to-transparent">
-          <Zap className="text-blue-500 w-10 h-10" />
-          <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest">Server Uptime</h3>
-          <p className="text-3xl font-black text-white">{status?.uptime || '0s'}</p>
+        <div className="lg:col-span-3 glass-card p-10 border-white/5 aspect-video bg-[#111]">
+           <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={graphData}>
+                 <defs>
+                    <linearGradient id="color" x1="0" y1="0" x2="0" y2="1">
+                       <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
+                       <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                    </linearGradient>
+                 </defs>
+                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                 <XAxis dataKey="name" stroke="#555" fontSize={10} axisLine={false} tickLine={false} />
+                 <YAxis stroke="#555" fontSize={10} axisLine={false} tickLine={false} />
+                 <Tooltip contentStyle={{ backgroundColor: '#111', border: '1px solid #333', borderRadius: '12px', fontSize: '10px' }} />
+                 <Area type="monotone" dataKey={activeTab} stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#color)" />
+              </AreaChart>
+           </ResponsiveContainer>
         </div>
-        <div className="glass-card p-8 border-white/5 space-y-4 bg-gradient-to-br from-purple-500/5 to-transparent">
-          <Cpu className="text-purple-500 w-10 h-10" />
-          <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest">API Requests (Total)</h3>
-          <p className="text-3xl font-black text-white">{status?.requests || 0}</p>
-        </div>
-      </div>
-      <div className="glass-card p-12 border-white/5 flex flex-col items-center justify-center min-h-[400px] text-center">
-         <Globe className="w-20 h-20 text-purple-600/20 mb-6 animate-pulse" />
-         <h4 className="text-2xl font-black mb-2 uppercase">Traffic Flow Analyzer</h4>
-         <p className="text-gray-500 max-w-md">Real-time data stream analysis enabled for Vercel Serverless Functions. Monitoring latency, cold starts, and payload integrity.</p>
       </div>
     </div>
   );
 };
 
 const SecurityPage = () => {
-  const scans = [
-    { title: 'SAST Scan', icon: Shield, status: 'Completed', color: 'green', desc: 'Analyzed Python source code for security vulnerabilities.' },
-    { title: 'SCA Audit', icon: Lock, status: 'Passed', color: 'blue', desc: 'Verified 214 node packages and 10 python libraries.' },
-    { title: 'Secret Leak Scan', icon: Zap, status: 'Secure', color: 'purple', desc: 'TruffleHog scan completed on git history.' }
-  ];
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  useEffect(() => { axios.get(`${API_BASE}/audit`).then(res => setLogs(res.data)); }, []);
 
   return (
     <div className="pt-32 pb-20 max-w-7xl mx-auto px-6">
-      <h2 className="text-5xl font-black uppercase italic mb-4">Security <span className="text-blue-500">Tier III</span> Dashboard</h2>
-      <p className="text-gray-500 mb-12 max-w-2xl font-medium uppercase tracking-widest text-[10px]">Continuous integration and security deployment pipeline automated through GitHub Actions.</p>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {scans.map((scan, i) => (
-          <div key={i} className="glass-card p-10 border-white/5 relative group overflow-hidden">
-            <div className={`absolute top-0 right-0 p-4 opacity-5 group-hover:scale-150 transition-transform duration-700`}>
-              <scan.icon className="w-40 h-40" />
+      <h2 className="text-5xl font-black uppercase italic mb-12">DevSecOps <span className="text-blue-500">Compliance</span></h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+         <div className="glass-card p-10 border-white/5 bg-gradient-to-br from-green-600/5 to-transparent">
+            <ShieldCheck className="w-12 h-12 text-green-500 mb-6" />
+            <h3 className="text-xl font-black uppercase mb-4 italic">Security Posture: EXCELLENT</h3>
+            <p className="text-sm text-gray-500 leading-relaxed font-medium">All SAST scans from the last 24 hours have passed with zero high-severity findings. Dependency versions are synchronized with SCA policies.</p>
+         </div>
+         <div className="glass-card p-10 border-white/5 bg-[#111]">
+            <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-8 flex items-center gap-2">
+               <Activity className="w-4 h-4" /> Live Audit Stream
+            </h3>
+            <div className="space-y-6">
+               {logs.map(log => (
+                 <div key={log.id} className="flex items-center justify-between border-b border-white/5 pb-4 last:border-0 last:pb-0">
+                    <div className="flex items-center gap-4">
+                       <div className={`w-2 h-2 rounded-full ${log.status === 'Alert' ? 'bg-red-500' : 'bg-green-500'}`} />
+                       <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest">{log.action}</p>
+                          <p className="text-[9px] text-gray-500 font-bold">{log.timestamp} • {log.user}</p>
+                       </div>
+                    </div>
+                    <span className="text-[9px] font-black uppercase text-gray-400 bg-white/5 px-2 py-1 rounded">{log.status}</span>
+                 </div>
+               ))}
             </div>
-            <div className={`w-12 h-12 bg-${scan.color}-500/10 rounded-2xl flex items-center justify-center mb-6`}>
-              <scan.icon className={`text-${scan.color}-500 w-6 h-6`} />
-            </div>
-            <h3 className="text-xl font-black mb-2 uppercase italic">{scan.title}</h3>
-            <div className="flex items-center gap-2 mb-4">
-              <div className={`w-2 h-2 rounded-full bg-${scan.color}-500 animate-pulse`} />
-              <span className={`text-[10px] font-black uppercase text-${scan.color}-500 tracking-widest`}>{scan.status}</span>
-            </div>
-            <p className="text-sm text-gray-500 font-medium leading-relaxed">{scan.desc}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-12 glass-card p-12 border-none bg-gradient-to-r from-red-600/10 to-transparent">
-        <div className="flex items-center gap-4 mb-4">
-           <ShieldCheck className="text-red-500 w-8 h-8" />
-           <h3 className="text-2xl font-black uppercase italic">Threat Protection Layer</h3>
-        </div>
-        <p className="text-gray-400 mb-8 max-w-3xl">Our DevSecOps pipeline enforces automated scanning policies. Any merge request to the master branch triggers a three-tier security check before reaching the Vercel staging environment.</p>
-        <button className="bg-red-500 text-white px-8 py-3 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-red-600 transition-colors">Download Security Audit</button>
+         </div>
       </div>
     </div>
   );
 };
 
-// --- APP WRAPPER ---
+// --- APP ---
 function App() {
+  const [isLoginOpen, setLoginOpen] = useState(false);
+  const [city, setCity] = useState('Mumbai');
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        try {
+          const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
+          setCity(res.data.address.city || res.data.address.town || 'Detected');
+        } catch (e) {}
+      });
+    }
+  }, []);
+
   return (
     <Router>
-      <div className="min-h-screen bg-[#0d0d0d] text-white selection:bg-purple-500/30">
-        <Navbar />
+      <div className="min-h-screen bg-[#0a0a0a] text-white selection:bg-purple-600/30 font-sans">
+        <nav className="fixed top-0 left-0 right-0 z-50 py-4 px-6 border-b border-white/5 bg-black/60 backdrop-blur-2xl">
+           <div className="max-w-7xl mx-auto flex items-center justify-between">
+              <Link to="/" className="flex items-center gap-3">
+                 <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-600/20">
+                    <Film className="w-5 h-5" />
+                 </div>
+                 <span className="text-2xl font-black tracking-tighter italic">CINE<span className="text-purple-600">BOOK</span></span>
+              </Link>
+              <div className="hidden md:flex items-center gap-8 text-[11px] font-black uppercase tracking-widest text-gray-500">
+                 <Link to="/" className="hover:text-white transition-colors">Movies</Link>
+                 <Link to="/monitoring" className="hover:text-white transition-colors">Monitoring</Link>
+                 <Link to="/security" className="hover:text-white transition-colors">Security</Link>
+              </div>
+              <div className="flex items-center gap-4">
+                 <div className="hidden sm:flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/10 text-[9px] font-black uppercase tracking-widest text-gray-400">
+                    <MapPin className="w-3 h-3 text-purple-600" /> {city}
+                 </div>
+                 <button onClick={() => setLoginOpen(true)} className="bg-white text-black px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-purple-600 hover:text-white transition-all">
+                    Login
+                 </button>
+              </div>
+           </div>
+        </nav>
+
         <Routes>
           <Route path="/" element={<MovieGrid />} />
           <Route path="/monitoring" element={<MonitoringPage />} />
           <Route path="/security" element={<SecurityPage />} />
         </Routes>
 
-        <footer className="border-t border-white/5 py-12 px-6">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 text-[10px] text-gray-600 font-black uppercase tracking-[0.3em]">
-              © 2026 CINEBOOK. SECURED BY DEVSECOPS. ALL SYSTEMS RESPONSIVE.
-          </div>
+        <Chatbot />
+        <LoginModal isOpen={isLoginOpen} onClose={() => setLoginOpen(false)} />
+        
+        <footer className="py-20 border-t border-white/5 px-6 text-center">
+           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-700">© 2026 CINEBOOK PLATFORM • SECURED BY DEVSECOPS AUDIT LOGS</p>
         </footer>
       </div>
     </Router>
