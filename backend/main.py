@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -10,7 +11,7 @@ from datetime import datetime, timedelta
 app = FastAPI(title="CineBook DevSecOps API")
 
 # Security Configuration
-SECRET_KEY = "SUPER_SECRET_KEY_REPLACE_IN_PROD"
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-key-for-local-use-only")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
