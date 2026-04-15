@@ -39,7 +39,7 @@ jobs:
 
       - name: Frontend Audit
         working-directory: ./frontend
-        run: npm install && npm audit --audit-level=high
+        run: npm audit --audit-level=high
 
       - name: Backend Safety Check
         run: |
@@ -67,42 +67,24 @@ jobs:
     name: Deploy to Vercel
     needs: [code-security, dependency-security, secrets-security]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
       - uses: actions/checkout@v3
 
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-      # ✅ DEBUG STEP (optional but useful)
-      - name: Check Secrets
-        run: |
-          echo "Token present: ${{ secrets.VERCEL_TOKEN != '' }}"
-          echo "Org ID present: ${{ secrets.VERCEL_ORG_ID != '' }}"
-          echo "Project ID present: ${{ secrets.VERCEL_PROJECT_ID != '' }}"
+      - name: Pull Vercel Environment Information
+        working-directory: ./frontend
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Pull Vercel Environment
-        run: |
-          vercel pull --yes \
-          --environment=production \
-          --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      - name: Build Project Artifacts
+        working-directory: ./frontend
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Build Project
-        run: |
-          vercel build --prod \
-          --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: Deploy to Vercel
-        run: |
-          vercel deploy --prebuilt --prod \
-          --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      - name: Deploy Project Artifacts to Vercel
+        working-directory: ./frontend
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
