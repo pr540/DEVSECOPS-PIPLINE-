@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { Film, Star, MapPin, ChevronRight, Ticket, Activity, ShieldCheck, Zap, Plus } from 'lucide-react';
+import { Film, Star, MapPin, Ticket, Activity, ShieldCheck, Zap, Plus } from 'lucide-react';
 
 interface Movie {
   id: number;
