@@ -73,7 +73,6 @@ jobs:
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID || vars.VERCEL_PROJECT_ID || secrets.PROJECT_ID }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     steps:
-      # --- FIX: Checkout to a lowercase path to satisfy Vercel project name validation ---
       - name: Checkout Code
         uses: actions/checkout@v3
         with:
@@ -82,25 +81,19 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-      - name: Vercel Pull
-        working-directory: ./devsecops-pipeline
-        run: vercel pull --yes --environment=production --token=${{ env.VERCEL_TOKEN }}
-
-      - name: Build Project Artifacts
-        working-directory: ./devsecops-pipeline
-        run: vercel build --prod --token=${{ env.VERCEL_TOKEN }}
-
-      - name: Deploy Project Artifacts to Vercel
+      # --- FIX: Deploy directly to Vercel and let Vercel handle the Python build ---
+      # This avoids the "uv not found" error on the GitHub runner
+      - name: Deploy to Vercel
         working-directory: ./devsecops-pipeline
         id: deploy
         run: |
-          URL=$(vercel deploy --prebuilt --prod --token=${{ env.VERCEL_TOKEN }})
+          URL=$(vercel deploy --prod --yes --token=${{ env.VERCEL_TOKEN }})
           echo "DEPLOY_URL=$URL" >> $GITHUB_ENV
-          echo "Deployed to: $URL"
+          echo "Deployed successfully to: $URL"
 
       - name: Dynamic Health Check
         run: |
           echo "Checking $DEPLOY_URL..."
-          sleep 45
-          curl -f -s "$DEPLOY_URL/api/health" || { echo "❌ Health check failed"; exit 1; }
-          echo "✅ Health check passed!"
+          sleep 60
+          curl -f -s "$DEPLOY_URL/api/health" || { echo "❌ Backend health check failed"; exit 1; }
+          echo "✅ All systems operational!"
