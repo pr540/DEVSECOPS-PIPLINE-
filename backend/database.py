@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Use SQLite for local/demo, but prefer environment variable
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./cinebook.db")
+# Use /tmp for SQLite on Vercel (read-only filesystem workaround)
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:////tmp/cinebook.db")
 
 engine = create_engine(
     DATABASE_URL, connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
