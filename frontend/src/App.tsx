@@ -282,9 +282,16 @@ const MonitoringPage = () => {
   );
 };
 
-const SecurityPage = () => {
+  const SecurityPage = () => {
   const [logs, setLogs] = useState<AuditLog[]>([]);
-  useEffect(() => { axios.get(`${API_BASE}/audit`).then(res => setLogs(res.data)); }, []);
+  useEffect(() => { 
+    axios.get(`${API_BASE}/audit`)
+      .then(res => setLogs(res.data))
+      .catch((e) => {
+        console.error("Audit fetch failed", e);
+        setLogs([]);
+      }); 
+  }, []);
 
   return (
     <div className="pt-32 pb-20 max-w-7xl mx-auto px-6">
