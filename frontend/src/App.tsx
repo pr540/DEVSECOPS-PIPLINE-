@@ -102,6 +102,16 @@ const MonitoringSystem = ({ status }: { status: ServerStatus | null }) => (
         </div>
       </div>
     </div>
+    
+    <div className="mt-8 flex justify-center">
+      <a 
+        href="https://grafana.com" 
+        target="_blank" 
+        className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-600 px-6 py-2 rounded-xl text-sm font-bold hover:scale-105 transition-transform"
+      >
+        <Activity className="w-4 h-4" /> Open Grafana Dashboard
+      </a>
+    </div>
   </section>
 );
 

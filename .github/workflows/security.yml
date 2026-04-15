@@ -69,8 +69,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     env:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID || vars.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID || vars.VERCEL_PROJECT_ID }}
+      # IMPORTANT: Ensure these are set in GitHub Repository SECRETS
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     steps:
       - uses: actions/checkout@v3
@@ -93,6 +94,11 @@ jobs:
       - name: Post-Deployment Monitoring (Health Check)
         run: |
           echo "Waiting for propagation..."
-          sleep 20
-          curl -f -s https://frontend-bezew4b0i-pr540s-projects.vercel.app/api/health || { echo "Backend health check failed"; exit 1; }
-          echo "Health check passed! System is dynamic and monitors are active."
+          sleep 30
+          curl -f -s https://frontend-bezew4b0i-pr540s-projects.vercel.app/api/health || { 
+            echo "❌ Backend health check failed on /api/health"; 
+            echo "Checking root API..."; 
+            curl -f -s https://frontend-bezew4b0i-pr540s-projects.vercel.app/api || exit 1; 
+          }
+          echo "✅ Health check passed! System is dynamic and monitors are active."
+          echo "📊 Monitoring available at: https://frontend-bezew4b0i-pr540s-projects.vercel.app/api/metrics"

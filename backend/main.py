@@ -1,22 +1,27 @@
 import os
 import time
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from .database import get_db, MovieModel
 
-app = FastAPI(title="CineBook DevSecOps API")
+app = FastAPI(
+    title="CineBook DevSecOps API",
+    openapi_url="/api/openapi.json",
+    docs_url="/api/docs"
+)
 
-# Monitoring state
+# Monitoring state (Prometheus Style)
 start_time = time.time()
-request_count = 0
+metrics = {
+    "requests_total": 0,
+    "db_status": "healthy",
+    "last_error": None
+}
 
-# Security Configuration
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-key-for-local-use-only")
-
-# Security Headers & CORS
+# --- SECURITY ---
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,8 +33,7 @@ app.add_middleware(
 # Custom Security Headers Middleware
 @app.middleware("http")
 async def monitor_request(request, call_next):
-    global request_count
-    request_count += 1
+    metrics["requests_total"] += 1
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
@@ -50,16 +54,27 @@ class MovieSchema(BaseModel):
 
 @app.get("/api")
 def read_root():
-    return {"message": "Welcome to TicketBooking DevSecOps API", "status": "operational"}
+    return {"message": "Welcome to CineBook API", "status": "operational"}
 
 @app.get("/api/health")
 def health_check():
     return {
         "status": "healthy",
         "uptime": f"{int(time.time() - start_time)}s",
-        "requests": request_count,
-        "database": "connected"
+        "requests": metrics["requests_total"],
+        "database": metrics["db_status"]
     }
+
+@app.get("/api/metrics")
+def get_prometheus_metrics():
+    # Format for Grafana/Prometheus
+    uptime = int(time.time() - start_time)
+    return (
+        f"# HELP requests_total Total number of requests processed\n"
+        f"requests_total {metrics['requests_total']}\n"
+        f"# HELP uptime_seconds Total uptime in seconds\n"
+        f"uptime_seconds {uptime}\n"
+    )
 
 @app.get("/api/movies", response_model=List[MovieSchema])
 def get_movies(db: Session = Depends(get_db)):
@@ -68,9 +83,9 @@ def get_movies(db: Session = Depends(get_db)):
     # Seed data if empty
     if not movies:
         seed_data = [
-            MovieModel(title="Interstellar", description="A team of explorers...", rating=8.7, image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", genre="Sci-Fi"),
+            MovieModel(title="Interstellar", description="Space exploration", rating=8.7, image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", genre="Sci-Fi"),
             MovieModel(title="The Dark Knight", description="Batman vs Joker", rating=9.0, image="https://images.unsplash.com/photo-1478720568477-152d9b164e26", genre="Action"),
-            MovieModel(title="Inception", description="Dream within a dream", rating=8.8, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", genre="Sci-Fi")
+            MovieModel(title="Inception", description="Dream robbery", rating=8.8, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", genre="Sci-Fi")
         ]
         db.add_all(seed_data)
         db.commit()
