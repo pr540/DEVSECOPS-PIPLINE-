@@ -244,11 +244,11 @@ const VideoModal = ({ movie, isOpen, onClose }: { movie: Movie | null, isOpen: b
             <div className="flex-1 bg-black relative">
                <iframe 
                 src={(() => {
-                  const id = movie.video_url.split('/').pop();
+                  const id = movie.video_url?.split('/').pop() || '';
                   if (activeServer === 'Server 1 (XYZ)') return `https://vidsrc.xyz/embed/movie/${id}`;
                   if (activeServer === 'Server 2 (TO)') return `https://vidsrc.to/embed/movie/${id}`;
                   if (activeServer === 'Server 3 (ME)') return `https://vidsrc.me/embed/movie/${id}`;
-                  return movie.video_url;
+                  return movie.video_url || '';
                 })()} 
                 title={movie.title}
                 className="w-full h-full border-0"
@@ -370,12 +370,11 @@ const AddMovieModal = ({ isOpen, onClose, onAdd, setStreamingStatus }: { isOpen:
 
 // --- PAGES ---
 
-const MovieGrid = ({ category, setCategory }: { category: string, setCategory: (c: string) => void }) => {
+const MovieGrid = ({ category, setCategory, searchQuery }: { category: string, setCategory: (c: string) => void, searchQuery: string }) => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [isModalOpen, setModalOpen] = useState(false);
   const [streamingStatus, setStreamingStatus] = useState<string | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<Movie | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchMovies = async () => {
     try {
@@ -730,6 +729,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoginOpen, setLoginOpen] = useState(false);
   const [category, setCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     // Check if user was previously "logged in" for this demo
@@ -801,16 +801,25 @@ function App() {
                    ))}
                 </div>
                 <div className="hidden md:flex items-center gap-4">
-                   <button onClick={handleLogout} className="bg-gray-800 text-white border border-gray-700 px-4 py-1.5 rounded-sm text-[9px] font-bold uppercase hover:bg-red-600 transition-all">
-                      Logout
-                   </button>
+                    <div className="relative">
+                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500" />
+                       <input 
+                         value={searchQuery}
+                         onChange={e => setSearchQuery(e.target.value)}
+                         placeholder="Quick Search..." 
+                         className="bg-white/5 border border-gray-700 rounded-sm pl-8 pr-4 py-1.5 text-[9px] font-bold uppercase outline-none focus:border-orange-500 transition-colors w-40" 
+                       />
+                    </div>
+                    <button onClick={handleLogout} className="bg-gray-800 text-white border border-gray-700 px-4 py-1.5 rounded-sm text-[9px] font-bold uppercase hover:bg-red-600 transition-all">
+                       Logout
+                    </button>
                 </div>
              </div>
           </nav>
         )}
 
         <Routes>
-          <Route path="/" element={isAuthenticated ? <MovieGrid category={category} setCategory={setCategory} /> : <LandingPage />} />
+          <Route path="/" element={isAuthenticated ? <MovieGrid category={category} setCategory={setCategory} searchQuery={searchQuery} /> : <LandingPage />} />
           <Route path="/monitoring" element={isAuthenticated ? <MonitoringPage /> : <LandingPage />} />
           <Route path="/security" element={isAuthenticated ? <SecurityPage /> : <LandingPage />} />
           <Route path="/profile" element={isAuthenticated ? <ProfilePage /> : <LandingPage />} />
