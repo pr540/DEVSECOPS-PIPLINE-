@@ -362,10 +362,15 @@ const MonitoringPage = () => {
 
 // --- APP ---
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoginOpen, setLoginOpen] = useState(false);
   const [city, setCity] = useState('Mumbai');
 
   useEffect(() => {
+    // Check if user was previously "logged in" for this demo
+    const auth = localStorage.getItem('cinebook_auth');
+    if (auth === 'true') setIsAuthenticated(true);
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(async (pos) => {
         try {
@@ -376,37 +381,85 @@ function App() {
     }
   }, []);
 
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    localStorage.setItem('cinebook_auth', 'true');
+    setLoginOpen(false);
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('cinebook_auth');
+  };
+
+  const LandingPage = () => (
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-b from-[#0a0a0a] to-[#111]">
+      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center mb-12">
+        <div className="w-20 h-20 bg-purple-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-purple-600/40 mx-auto mb-8">
+          <Film className="w-10 h-10" />
+        </div>
+        <h1 className="text-7xl font-black italic tracking-tighter mb-4">CINE<span className="text-purple-600">BOOK</span></h1>
+        <p className="text-gray-500 font-bold uppercase tracking-[0.3em] text-xs">The Most Secure Movie Platform on the Blockchain</p>
+      </motion.div>
+      <div className="glass-card p-10 w-full max-w-md border-white/5 bg-white/5 backdrop-blur-3xl">
+         <h2 className="text-2xl font-black uppercase italic mb-8 text-center">Identity Verification</h2>
+         <div className="space-y-4">
+            <button onClick={handleLogin} className="w-full bg-white text-black py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-3 hover:bg-gray-200 transition-all border border-gray-300">
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#EA4335" d="M12 5.04c1.94 0 3.1 1.05 3.85 1.76l2.84-2.84C16.81 2.19 14.61 1 12 1 7.7 1 4.1 3.5 2.5 7.15l3.35 2.6c.79-2.28 2.92-3.71 6.15-3.71z"/>
+                <path fill="#4285F4" d="M23.5 12.2c0-.79-.07-1.54-.19-2.27H12v4.3h6.43c-.28 1.44-1.09 2.65-2.29 3.4l3.56 2.77c2.09-1.92 3.3-4.74 3.3-8.2z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.34-1.36-.34-2.09s.12-1.43.34-2.09l-3.35-2.6C1.65 8.7 1 10.28 1 12s.65 3.3 1.49 4.65l3.35-2.56z"/>
+                <path fill="#34A853" d="M12 23c3.24 0 5.95-1.08 7.93-2.91l-3.56-2.77c-1.1.74-2.5 1.18-4.37 1.18-3.21 0-5.92-2.16-6.89-5.07l-3.35 2.6c1.6 3.65 5.21 6.15 9.24 6.15z"/>
+              </svg>
+              Continue with Google
+            </button>
+            <div className="relative flex items-center py-2">
+              <div className="flex-grow border-t border-white/10"></div>
+              <span className="flex-shrink mx-4 text-gray-500 text-[10px] font-black uppercase">Or</span>
+              <div className="flex-grow border-t border-white/10"></div>
+            </div>
+            <button onClick={handleLogin} className="w-full bg-purple-600 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-purple-700 transition-all">
+              Login to Workspace
+            </button>
+         </div>
+         <p className="mt-8 text-center text-[9px] text-gray-600 font-bold uppercase tracking-widest">Authorized Access Only</p>
+      </div>
+    </div>
+  );
+
   return (
     <Router>
       <div className="min-h-screen bg-[#0a0a0a] text-white selection:bg-purple-600/30 font-sans">
-        <nav className="fixed top-0 left-0 right-0 z-50 py-4 px-6 border-b border-white/5 bg-black/60 backdrop-blur-2xl">
-           <div className="max-w-7xl mx-auto flex items-center justify-between">
-              <Link to="/" className="flex items-center gap-3">
-                 <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-600/20">
-                    <Film className="w-5 h-5" />
-                 </div>
-                 <span className="text-2xl font-black tracking-tighter italic">CINE<span className="text-purple-600">BOOK</span></span>
-              </Link>
-              <div className="hidden md:flex items-center gap-8 text-[11px] font-black uppercase tracking-widest text-gray-500">
-                 <Link to="/" className="hover:text-white transition-colors">Movies</Link>
-                 <Link to="/monitoring" className="hover:text-white transition-colors">Monitoring</Link>
-                 <Link to="/security" className="hover:text-white transition-colors">Security</Link>
-              </div>
-              <div className="flex items-center gap-4">
-                 <div className="hidden sm:flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/10 text-[9px] font-black uppercase tracking-widest text-gray-400">
-                    <MapPin className="w-3 h-3 text-purple-600" /> {city}
-                 </div>
-                 <button onClick={() => setLoginOpen(true)} className="bg-white text-black px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-purple-600 hover:text-white transition-all">
-                    Login
-                 </button>
-              </div>
-           </div>
-        </nav>
+        {isAuthenticated && (
+          <nav className="fixed top-0 left-0 right-0 z-50 py-4 px-6 border-b border-white/5 bg-black/60 backdrop-blur-2xl">
+             <div className="max-w-7xl mx-auto flex items-center justify-between">
+                <Link to="/" className="flex items-center gap-3">
+                   <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-600/20">
+                      <Film className="w-5 h-5" />
+                   </div>
+                   <span className="text-2xl font-black tracking-tighter italic">CINE<span className="text-purple-600">BOOK</span></span>
+                </Link>
+                <div className="hidden md:flex items-center gap-8 text-[11px] font-black uppercase tracking-widest text-gray-500">
+                   <Link to="/" className="hover:text-white transition-colors">Movies</Link>
+                   <Link to="/monitoring" className="hover:text-white transition-colors">Monitoring</Link>
+                   <Link to="/security" className="hover:text-white transition-colors">Security</Link>
+                </div>
+                <div className="flex items-center gap-4">
+                   <div className="hidden sm:flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/10 text-[9px] font-black uppercase tracking-widest text-gray-400">
+                      <MapPin className="w-3 h-3 text-purple-600" /> {city}
+                   </div>
+                   <button onClick={handleLogout} className="bg-white/5 text-white border border-white/10 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-600 hover:border-red-600 transition-all">
+                      Logout
+                   </button>
+                </div>
+             </div>
+          </nav>
+        )}
 
         <Routes>
-          <Route path="/" element={<MovieGrid />} />
-          <Route path="/monitoring" element={<MonitoringPage />} />
-          <Route path="/security" element={<SecurityPage />} />
+          <Route path="/" element={isAuthenticated ? <MovieGrid /> : <LandingPage />} />
+          <Route path="/monitoring" element={isAuthenticated ? <MonitoringPage /> : <LandingPage />} />
+          <Route path="/security" element={isAuthenticated ? <SecurityPage /> : <LandingPage />} />
         </Routes>
 
         <Chatbot />
