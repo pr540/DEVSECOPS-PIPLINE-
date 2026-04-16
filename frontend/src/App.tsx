@@ -56,7 +56,13 @@ const LoginModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                   <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
                   <input type="password" className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-sm focus:border-purple-500 outline-none" placeholder="Password" />
                </div>
-               <button className="w-full bg-gradient-to-r from-purple-600 to-blue-500 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:opacity-90 transition-all">
+               <button 
+                 onClick={() => {
+                   onClose();
+                   // In a real app, this would set a session/token
+                   window.location.reload(); 
+                 }}
+                 className="w-full bg-gradient-to-r from-purple-600 to-blue-500 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:opacity-90 transition-all">
                  {isLogin ? 'Sign In' : 'Create Account'}
                </button>
                <div className="text-center pt-4">
@@ -189,7 +195,8 @@ const MovieGrid = () => {
   useEffect(() => { fetchMovies(); }, []);
 
   const filteredMovies = useMemo(() => {
-    return movies.filter(m => m.category === category || (category === 'All' && m.language !== 'English'));
+    if (category === 'All') return movies;
+    return movies.filter(m => m.category === category || m.language === category);
   }, [movies, category]);
 
   return (
@@ -297,10 +304,16 @@ const MonitoringPage = () => {
     <div className="pt-32 pb-20 max-w-7xl mx-auto px-6">
       <h2 className="text-5xl font-black uppercase italic mb-12">DevSecOps <span className="text-blue-500">Compliance</span></h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-         <div className="glass-card p-10 border-white/5 bg-gradient-to-br from-green-600/5 to-transparent">
-            <ShieldCheck className="w-12 h-12 text-green-500 mb-6" />
-            <h3 className="text-xl font-black uppercase mb-4 italic">Security Posture: EXCELLENT</h3>
-            <p className="text-sm text-gray-500 leading-relaxed font-medium">All SAST scans from the last 24 hours have passed with zero high-severity findings. Dependency versions are synchronized with SCA policies.</p>
+         <div className={`glass-card p-10 border-white/5 bg-gradient-to-br ${logs.some(l => l.status === 'Alert') ? 'from-red-600/5' : 'from-green-600/5'} to-transparent`}>
+            {logs.some(l => l.status === 'Alert') ? <Activity className="w-12 h-12 text-red-500 mb-6" /> : <ShieldCheck className="w-12 h-12 text-green-500 mb-6" />}
+            <h3 className="text-xl font-black uppercase mb-4 italic">
+               Security Posture: {logs.some(l => l.status === 'Alert') ? <span className="text-red-500">Action Required</span> : <span className="text-green-500">Excellent</span>}
+            </h3>
+            <p className="text-sm text-gray-500 leading-relaxed font-medium">
+               {logs.some(l => l.status === 'Alert') 
+                 ? "Critical security alerts detected. Unauthorized access attempts have been logged and require immediate verification."
+                 : "All security scans have passed. Recent unauthorized access attempts were successfully blocked and the system has been hardened."}
+            </p>
          </div>
          <div className="glass-card p-10 border-white/5 bg-[#111]">
             <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-8 flex items-center gap-2">
@@ -310,7 +323,11 @@ const MonitoringPage = () => {
                {logs.map(log => (
                  <div key={log.id} className="flex items-center justify-between border-b border-white/5 pb-4 last:border-0 last:pb-0">
                     <div className="flex items-center gap-4">
-                       <div className={`w-2 h-2 rounded-full ${log.status === 'Alert' ? 'bg-red-500' : 'bg-green-500'}`} />
+                       <div className={`w-2 h-2 rounded-full ${
+                          log.status === 'Alert' ? 'bg-red-500' : 
+                          log.status === 'Blocked' ? 'bg-yellow-500' :
+                          'bg-green-500'
+                        }`} />
                        <div>
                           <p className="text-[10px] font-black uppercase tracking-widest">{log.action}</p>
                           <p className="text-[9px] text-gray-500 font-bold">{log.timestamp} • {log.user}</p>
