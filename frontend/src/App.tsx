@@ -243,7 +243,7 @@ const VideoModal = ({ movie, isOpen, onClose }: { movie: Movie | null, isOpen: b
             
             <div className="flex-1 bg-black relative">
                <iframe 
-                src={`${movie.video_url}?autoplay=1`} 
+                src={movie.video_url} 
                 title={movie.title}
                 className="w-full h-full border-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -794,7 +794,7 @@ function App() {
                      <Link key={nav} to="/" className="hover:text-orange-500 transition-colors" onClick={() => setCategory(nav === 'Home' ? 'All' : nav)}>{nav}</Link>
                    ))}
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="hidden md:flex items-center gap-4">
                    <button onClick={handleLogout} className="bg-gray-800 text-white border border-gray-700 px-4 py-1.5 rounded-sm text-[9px] font-bold uppercase hover:bg-red-600 transition-all">
                       Logout
                    </button>
