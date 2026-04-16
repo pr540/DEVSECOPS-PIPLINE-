@@ -289,6 +289,10 @@ const MovieGrid = () => {
            <motion.div layout key={movie.id} className="group relative glass-card p-2 border-white/5 bg-white/5 hover:bg-white/10 transition-all">
               <div className="aspect-[2/3] rounded-xl overflow-hidden mb-4 relative">
                  <img src={movie.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                 <div className="absolute top-4 left-4 bg-purple-600 px-3 py-1 rounded-lg text-[7px] font-black uppercase text-white shadow-lg">
+                    {movie.quality || '1080p'}
+                 </div>
+
                  <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black via-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex justify-between items-center">
                     <button onClick={() => startStream(movie)} className="text-[10px] font-black uppercase text-purple-500 hover:text-white flex items-center gap-2">
                        <Play className="w-3 h-3" /> Stream

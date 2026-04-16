@@ -137,13 +137,14 @@ def get_movies(
     
     movies = query.all()
     
-    # Pre-seed if empty
-    if not movies and not collection:
+    # Pre-seed if empty (even if collection is 'All')
+    if not movies and (not collection or collection == "All"):
         seed = [
-            Movie(title="Deadpool & Wolverine", description="MCU chaos.", rating=9.0, image="https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", genre="Action", collection="2000-2026", year=2024, video_url="movies/deadpool.m3u8"),
-            Movie(title="Pulp Fiction", description="Tarantino classic.", rating=8.9, image="https://images.unsplash.com/photo-1535016120720-40c646bebbcf", genre="Crime", collection="90s", year=1994, video_url="movies/pulpfiction.m3u8"),
-            Movie(title="Pushpa 2", description="The Rule.", rating=9.5, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", genre="Action", collection="2000-2026", year=2025, video_url="movies/pushpa2.m3u8")
+            Movie(title="Deadpool & Wolverine", description="MCU chaos.", rating=9.0, image="https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", genre="Action", collection="2000-2026", year=2024, quality="1080p Full HD", video_url="movies/deadpool.m3u8", download_url="https://archive.org/details/deadpool_movie"),
+            Movie(title="Pulp Fiction", description="Tarantino classic.", rating=8.9, image="https://images.unsplash.com/photo-1535016120720-40c646bebbcf", genre="Crime", collection="90s", year=1994, quality="1080p Remastered", video_url="movies/pulpfiction.m3u8", download_url="https://archive.org/details/pulp_fiction_1994"),
+            Movie(title="Pushpa 2", description="The Rule.", rating=9.5, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", genre="Action", collection="2000-2026", year=2025, quality="1080p Ultra HD", video_url="movies/pushpa2.m3u8", download_url="https://archive.org/details/pushpa_2")
         ]
+
 
         db.add_all(seed)
         db.commit()
