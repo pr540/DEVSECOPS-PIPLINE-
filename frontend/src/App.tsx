@@ -145,23 +145,42 @@ const Chatbot = () => {
 };
 
 const VideoModal = ({ movie, isOpen, onClose }: { movie: Movie | null, isOpen: boolean, onClose: () => void }) => {
+  const [activeServer, setActiveServer] = useState('Server 1 (FAST)');
   if (!movie) return null;
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-4">
-          <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 30 }} className="w-full max-w-5xl aspect-video bg-black rounded-3xl overflow-hidden relative shadow-2xl border border-white/5">
-            <button onClick={onClose} className="absolute top-6 right-6 z-10 p-3 bg-black/50 hover:bg-white/10 rounded-full transition-all text-white"><X /></button>
-            <iframe 
-              src={`${movie.video_url}?autoplay=1`} 
-              title={movie.title}
-              className="w-full h-full border-0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen
-            />
-            <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black to-transparent">
-              <h2 className="text-3xl font-black uppercase italic text-white">{movie.title}</h2>
-              <p className="text-xs text-purple-400 font-bold uppercase tracking-[0.2em]">{movie.quality}</p>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[300] bg-black/98 backdrop-blur-3xl flex items-center justify-center p-4">
+          <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 30 }} className="w-full max-w-6xl aspect-video bg-[#050505] rounded-[2rem] overflow-hidden relative shadow-[0_0_100px_rgba(139,92,246,0.15)] border border-white/5 flex flex-col">
+            <div className="p-6 border-b border-white/5 flex items-center justify-between bg-black/40">
+               <div className="flex items-center gap-6">
+                  <h2 className="text-xl font-black uppercase italic tracking-tighter text-white">{movie.title}</h2>
+                  <div className="flex gap-2">
+                     {['Server 1 (FAST)', 'Server 2 (HD)', 'Direct Link'].map(s => (
+                       <button key={s} onClick={() => setActiveServer(s)} className={`px-4 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${activeServer === s ? 'bg-purple-600 text-white' : 'bg-white/5 text-gray-500 hover:text-white'}`}>
+                         {s}
+                       </button>
+                     ))}
+                  </div>
+               </div>
+               <button onClick={onClose} className="p-3 bg-white/5 hover:bg-red-600 rounded-xl transition-all"><X className="w-4 h-4" /></button>
+            </div>
+            
+            <div className="flex-1 bg-black relative">
+               <iframe 
+                src={`${movie.video_url}?autoplay=1`} 
+                title={movie.title}
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              />
+            </div>
+
+            <div className="p-8 bg-gradient-to-t from-black via-black/80 to-transparent absolute bottom-0 left-0 right-0 pointer-events-none">
+              <div className="flex items-center gap-3">
+                 <span className="text-[10px] font-black text-purple-500 uppercase tracking-widest">Now Streaming in {movie.quality}</span>
+                 <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+              </div>
             </div>
           </motion.div>
         </motion.div>
@@ -232,6 +251,7 @@ const MovieGrid = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [streamingStatus, setStreamingStatus] = useState<string | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<Movie | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchMovies = async () => {
     try {
@@ -244,101 +264,141 @@ const MovieGrid = () => {
   useEffect(() => { fetchMovies(); }, []);
 
   const handleStream = (movie: Movie) => {
-    setStreamingStatus(`Preparing secure pipeline for ${movie.title}...`);
+    setStreamingStatus(`Bypassing firewall for secure stream: ${movie.title}...`);
     setTimeout(() => {
       setSelectedVideo(movie);
       setStreamingStatus(null);
     }, 1500);
   };
 
-  const handleDownload = (movie: Movie) => {
-    setStreamingStatus(`Generating secure download link...`);
+  const handleDownload = (movie: Movie, quality: string) => {
+    setStreamingStatus(`Generating ${quality} Magnet Link...`);
     setTimeout(() => {
-      setStreamingStatus(`Link Generated: ${movie.download_url}`);
+      setStreamingStatus(`Final Link: ${movie.download_url} [${quality}]`);
       setTimeout(() => setStreamingStatus(null), 6000);
-    }, 1000);
+    }, 1200);
   };
 
   const filteredMovies = useMemo(() => {
-    if (category === 'All') return movies;
-    return movies.filter(m => m.category === category || m.language === category);
-  }, [movies, category]);
+    let filtered = movies;
+    if (category !== 'All') {
+      filtered = filtered.filter(m => m.category === category || m.genre === category || m.language === category);
+    }
+    if (searchQuery) {
+      filtered = filtered.filter(m => m.title.toLowerCase().includes(searchQuery.toLowerCase()));
+    }
+    return filtered;
+  }, [movies, category, searchQuery]);
 
   return (
     <div className="pt-32 pb-20 max-w-7xl mx-auto px-6">
       {streamingStatus && (
-        <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] bg-green-500 text-white px-8 py-4 rounded-2xl font-black uppercase text-xs shadow-2xl shadow-green-500/40">
+        <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] bg-purple-600 text-white px-8 py-4 rounded-2xl font-black uppercase text-xs shadow-2xl shadow-purple-600/40 border border-white/20">
            {streamingStatus}
         </motion.div>
       )}
-      <div className="mb-12 flex flex-col md:flex-row items-end justify-between gap-6">
-        <div>
-           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3 mb-6 bg-green-500/10 border border-green-500/20 px-4 py-2 rounded-full w-fit">
-              <ShieldCheck className="w-4 h-4 text-green-500" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-green-500">Pipeline Integrity Verified: Success</span>
-           </motion.div>
-          <h2 className="text-6xl font-black uppercase italic mb-4 leading-none">Global <span className="gradient-text">Stream</span></h2>
-          <div className="flex gap-4">
-             {['Latest', 'Present', 'Classic', 'All'].map(cat => (
-               <button key={cat} onClick={() => setCategory(cat)} className={`text-[10px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-full border transition-all ${category === cat ? 'bg-white text-black border-white' : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/30'}`}>
-                 {cat}
-               </button>
-             ))}
+
+      <div className="flex flex-col lg:flex-row gap-12">
+        {/* SIDEBAR NAVIGATION */}
+        <aside className="lg:w-64 space-y-10">
+          <div>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-6">Security Search</h3>
+            <div className="relative">
+              <input 
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search Database..." 
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[10px] font-black uppercase outline-none focus:border-purple-500 transition-colors" 
+              />
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-6">Master Categories</h3>
+            <nav className="space-y-2">
+              {['Latest', 'Present', 'Classic', 'All'].map(cat => (
+                <button 
+                  key={cat} 
+                  onClick={() => setCategory(cat)}
+                  className={`w-full text-left px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${category === cat ? 'bg-white text-black' : 'text-gray-500 hover:bg-white/5'}`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          <div>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-6">By Genre</h3>
+            <div className="flex flex-wrap gap-2">
+              {['Action', 'Sci-Fi', 'Crime', 'Drama'].map(genre => (
+                <button key={genre} onClick={() => setCategory(genre)} className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black uppercase text-gray-400 hover:border-purple-500 hover:text-white transition-all">
+                  {genre}
+                </button>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        {/* MOVIE CONTENT AREA */}
+        <div className="flex-1">
+          <div className="mb-12 flex items-center justify-between">
+            <h2 className="text-5xl font-black uppercase italic leading-none">{category}<span className="text-purple-600"> Database</span></h2>
+            <button onClick={() => setModalOpen(true)} className="flex items-center gap-2 bg-white text-black px-6 py-3 rounded-xl text-[10px] font-black uppercase hover:bg-purple-600 hover:text-white transition-all">
+              <Plus className="w-4 h-4" /> Add Movie
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-10">
+            {filteredMovies.length > 0 ? filteredMovies.map(movie => (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                key={movie.id} 
+                className="group relative rounded-3xl overflow-hidden bg-[#111] border border-white/5 transition-all duration-700 hover:border-purple-500/50"
+              >
+                 <div className="aspect-[3/4] overflow-hidden relative">
+                    <img src={movie.image} alt={movie.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100" />
+                    <div className="absolute top-4 right-4 bg-purple-600 px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest text-white shadow-xl shadow-purple-600/40">
+                       {movie.quality}
+                    </div>
+                    
+                    <div className="absolute inset-x-0 bottom-0 p-8 bg-gradient-to-t from-black via-black/80 to-transparent">
+                       <h3 className="text-2xl font-black uppercase italic mb-2 tracking-tighter truncate">{movie.title}</h3>
+                       <div className="flex items-center gap-4 mb-6">
+                          <div className="flex items-center gap-1">
+                            <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                            <span className="text-[10px] font-black">{movie.rating}</span>
+                          </div>
+                          <span className="text-[8px] font-black uppercase text-gray-500 px-2 py-0.5 border border-white/10 rounded">{movie.language}</span>
+                       </div>
+
+                       <div className="space-y-4">
+                          <button 
+                            onClick={() => handleStream(movie)}
+                            className="w-full bg-white text-black py-4 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 hover:bg-purple-600 hover:text-white transition-all"
+                          >
+                            Watch HD Stream
+                          </button>
+                          
+                          <div className="grid grid-cols-2 gap-2 pt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                             <button onClick={() => handleDownload(movie, '720p')} className="bg-white/5 hover:bg-white/10 text-white py-2 rounded-lg border border-white/10 text-[8px] font-black uppercase transition-all">720p (900MB)</button>
+                             <button onClick={() => handleDownload(movie, '1080p')} className="bg-white/5 hover:bg-white/10 text-white py-2 rounded-lg border border-white/10 text-[8px] font-black uppercase transition-all">1080p (2.4GB)</button>
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+              </motion.div>
+            )) : (
+              <div className="col-span-full py-40 text-center glass-card border-white/5">
+                 <Film className="w-12 h-12 text-gray-700 mx-auto mb-6" />
+                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 italic">No assets found in current database shard.</p>
+              </div>
+            )}
           </div>
         </div>
-        <button onClick={() => setModalOpen(true)} className="flex items-center gap-2 bg-white text-black px-8 py-4 rounded-xl text-xs font-black uppercase hover:bg-purple-600 hover:text-white transition-all">
-          <Plus className="w-4 h-4" /> Add Movie
-        </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        {filteredMovies.length > 0 ? filteredMovies.map(movie => (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            whileHover={{ y: -10 }}
-            key={movie.id} 
-            className="group relative rounded-2xl overflow-hidden glass-card border-white/5 transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/20"
-          >
-             <div className="aspect-[2/3] overflow-hidden relative">
-                <img src={movie.image} alt={movie.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest text-white border border-white/10">
-                   {movie.language}
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent flex flex-col justify-end p-6">
-                   <div className="mb-2">
-                     <span className="text-[8px] font-black uppercase bg-purple-600 px-2 py-0.5 rounded shadow-lg shadow-purple-600/40">{movie.quality || '1080p HD'}</span>
-                   </div>
-                   <h3 className="text-xl font-black uppercase italic mb-1 truncate group-hover:text-purple-400 transition-colors">{movie.title}</h3>
-                   <div className="flex items-center gap-2 mb-4">
-                      <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                      <span className="text-xs font-black">{movie.rating}</span>
-                   </div>
-                   <div className="grid grid-cols-2 gap-2 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                     <button 
-                      onClick={() => handleStream(movie)}
-                      className="bg-white text-black py-3 rounded-xl text-[9px] font-black uppercase hover:bg-purple-600 hover:text-white transition-all">
-                        Stream Now
-                     </button>
-                     <button 
-                      onClick={() => handleDownload(movie)}
-                      className="bg-white/5 hover:bg-white/10 text-white py-3 rounded-xl border border-white/10 text-[9px] font-black uppercase transition-all backdrop-blur-md">
-                        Get Link
-                     </button>
-                   </div>
-                </div>
-             </div>
-          </motion.div>
-        )) : (
-          <div className="col-span-full py-40 text-center">
-             <div className="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                <Film className="w-6 h-6 text-gray-500" />
-             </div>
-             <p className="text-xs font-black uppercase tracking-widest text-gray-500">No content available in this category yet.</p>
-             <button onClick={fetchMovies} className="mt-6 text-[10px] font-black uppercase text-purple-500 hover:text-white transition-colors underline">Refresh Library</button>
-          </div>
-        )}
-      </div>
       <AddMovieModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} onAdd={fetchMovies} />
       <VideoModal movie={selectedVideo} isOpen={!!selectedVideo} onClose={() => setSelectedVideo(null)} />
     </div>
