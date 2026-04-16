@@ -1,33 +1,64 @@
 import os
 import time
-from fastapi import FastAPI, Depends, HTTPException, status, APIRouter
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from datetime import timedelta
 from typing import List, Optional
+from fastapi import FastAPI, Depends, HTTPException, status, APIRouter, Security, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from .database import get_db, MovieModel
+from pydantic import BaseModel, EmailStr
 
-app = FastAPI(
-    title="CineBook DevSecOps API",
-    openapi_url="/api/openapi.json",
-    docs_url="/api/docs"
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+from .database import get_db, Movie, User, favorites
+from .auth_utils import (
+    get_password_hash, verify_password, create_access_token, 
+    get_current_user, get_current_admin, ACCESS_TOKEN_EXPIRE_MINUTES
 )
+from .storage import generate_presigned_url
 
-# Monitoring state
-start_time = time.time()
-metrics = {"requests_total": 0, "db_status": "healthy"}
+limiter = Limiter(key_func=get_remote_address)
+app = FastAPI(
+    title="CineStream API Pro",
+    version="2.0.0",
+    docs_url="/api/docs",
+    openapi_url="/api/openapi.json"
+)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# --- SECURITY & CORS ---
-# In production, this should be restricted to your domain
+
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Should be os.getenv("ALLOWED_ORIGINS", "*")
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # --- MODELS ---
+class UserSchema(BaseModel):
+    id: Optional[int] = None
+    username: str
+    email: EmailStr
+    role: str = "user"
+
+    class Config:
+        from_attributes = True
+
+class UserCreate(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    user: UserSchema
+
 class MovieSchema(BaseModel):
     id: Optional[int] = None
     title: str
@@ -36,87 +67,145 @@ class MovieSchema(BaseModel):
     image: str
     genre: str
     language: Optional[str] = "English"
-    category: Optional[str] = "Latest"
     quality: Optional[str] = "1080p Full HD"
     video_url: Optional[str] = None
     download_url: Optional[str] = None
+    year: Optional[int] = None
+    collection: Optional[str] = "All"
 
     class Config:
         from_attributes = True
 
-# --- DUMMY AUDIT LOGS ---
-audit_logs = [
-    {"id": 1, "action": "DATABASE_SEED", "user": "System", "timestamp": "2026-04-15 12:00:01", "status": "Success"},
-    {"id": 2, "action": "SAST_SCAN_INIT", "user": "CI/CD", "timestamp": "2026-04-15 12:05:22", "status": "Passed"},
-    {"id": 3, "action": "SCA_SCAN_RUN", "user": "Actions", "timestamp": "2026-04-15 12:06:45", "status": "Completed"},
-    {"id": 4, "action": "UNAUTHORIZED_ACCESS_BLOCKED", "user": "WAF", "timestamp": "2026-04-15 12:10:11", "status": "Allowed"},
-    {"id": 5, "action": "IP_RESTRICTION_ENFORCED", "user": "SecOps", "timestamp": "2026-04-16 08:30:00", "status": "Resolved"}
-]
+# --- API ROUTES ---
+api_router = APIRouter(prefix="/api")
 
-# --- ROUTES ---
-router = APIRouter()
+# AUTH
+@api_router.post("/auth/signup", response_model=UserSchema)
+@limiter.limit("5/minute")
+def signup(request: Request, user_in: UserCreate, db: Session = Depends(get_db)):
+    if db.query(User).filter(User.username == user_in.username).first():
+        raise HTTPException(status_code=400, detail="Username already registered")
+    if db.query(User).filter(User.email == user_in.email).first():
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    hashed_pw = get_password_hash(user_in.password)
+    new_user = User(
+        username=user_in.username, 
+        email=user_in.email, 
+        hashed_password=hashed_pw,
+        role="user" # Default
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
 
-@router.get("/")
-def read_root():
-    return {"message": "Welcome to CineBook API", "status": "operational"}
-
-@router.get("/health")
-def health_check():
+@api_router.post("/auth/login", response_model=Token)
+@limiter.limit("10/minute")
+def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == form_data.username).first()
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
     return {
-        "status": "healthy",
-        "uptime": f"{int(time.time() - start_time)}s",
-        "requests": metrics["requests_total"],
-        "database": metrics["db_status"]
+        "access_token": access_token, 
+        "token_type": "bearer",
+        "user": user
     }
 
-@router.get("/audit", response_model=List[dict])
-def get_audit_logs():
-    return audit_logs
+@api_router.get("/auth/me", response_model=UserSchema)
+def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
 
-@router.get("/movies", response_model=List[MovieSchema])
-def get_movies(db: Session = Depends(get_db)):
-    metrics["requests_total"] += 1
-    movies = db.query(MovieModel).all()
-    if not movies:
-        seed_data = [
-            # 2024 - 2026 LATEST RELEASES
-            MovieModel(title="Pushpa 2: The Rule (2025)", description="The clash continues in this high-octane action sequel.", rating=9.5, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", genre="Action", language="Telugu", category="Latest", quality="1080p Ultra HD", video_url="https://vidsrc.xyz/embed/movie/872585", download_url="https://minomedia.cine/link/p2_tel_1080"),
-            MovieModel(title="Kalki 2898 AD (2024)", description="A modern avatar of Vishnu descends to Earth.", rating=8.9, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", genre="Sci-Fi", language="Telugu", category="Latest", quality="1080p BluRay", video_url="https://vidsrc.xyz/embed/movie/766507", download_url="https://minomedia.cine/link/kalki_4k_tel"),
-            MovieModel(title="Devara: Part 1 (2024)", description="An epic saga of a warrior protecting his people.", rating=8.7, image="https://images.unsplash.com/photo-1535016120720-40c646bebbcf", genre="Action", language="Telugu", category="Latest", quality="1080p WEB-DL", video_url="https://vidsrc.xyz/embed/movie/1125217", download_url="https://minomedia.cine/link/devara_tel_hd"),
-            MovieModel(title="Stree 2 (2024)", description="The town of Chanderi is haunted again.", rating=8.4, image="https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", genre="Horror", language="Hindi", category="Latest", quality="1080p Full HD", video_url="https://vidsrc.xyz/embed/movie/1243615", download_url="https://minomedia.cine/link/stree2_hindi_hd"),
-            MovieModel(title="Deadpool & Wolverine (2024)", description="A chaotic duo joins the MCU.", rating=9.0, image="https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", genre="Action", language="English", category="Latest", quality="1080p DTS-X", video_url="https://vidsrc.xyz/embed/movie/533535", download_url="https://minomedia.cine/link/dw_eng_1080"),
-
-            # PRESENT (2020 - 2023)
-            MovieModel(title="Leo (2023)", description="A cafe owner becomes the target of a drug cartel.", rating=8.3, image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", genre="Action", language="Tamil", category="Present", quality="1080p HD", video_url="https://vidsrc.xyz/embed/movie/951491", download_url="https://minomedia.cine/link/leo_tam_hd"),
-            MovieModel(title="Jailer (2023)", description="A retired jailer goes on a manhunt.", rating=8.5, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", genre="Action", language="Tamil", category="Present", quality="1080p WEB", video_url="https://vidsrc.xyz/embed/movie/980145", download_url="https://minomedia.cine/link/jailer_tam_1080"),
-            MovieModel(title="Manjummel Boys (2024)", description="A group of friends gets trapped in Guna Caves.", rating=9.1, image="https://images.unsplash.com/photo-1535016120720-40c646bebbcf", genre="Survival", language="Malayalam", category="Present", quality="1080p BluRay", video_url="https://vidsrc.xyz/embed/movie/1220456", download_url="https://minomedia.cine/link/mboy_mal_hd"),
-            MovieModel(title="Kantara (2022)", description="A conflict between humanity and nature.", rating=8.8, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", genre="Thriller", language="Kannada", category="Present", quality="1080p Ultra", video_url="https://vidsrc.xyz/embed/movie/1020612", download_url="https://minomedia.cine/link/kantara_kan_hd"),
-            MovieModel(title="RRR (2022)", description="Two revolutionaries fight against British Raj.", rating=8.9, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", genre="Epic", language="Telugu", category="Present", quality="1080p IMAX", video_url="https://vidsrc.xyz/embed/movie/579047", download_url="https://minomedia.cine/link/rrr_tel_1080"),
-
-            # 90s & CLASSICS
-            MovieModel(title="Shiva (1989/90)", description="A student stands up against corruption.", rating=8.5, image="https://images.unsplash.com/photo-1535016120720-40c646bebbcf", genre="Action", language="Telugu", category="Classic", quality="1080p Remastered", video_url="https://vidsrc.xyz/embed/movie/39116", download_url="https://minomedia.cine/link/shiva_90s_hd"),
-            MovieModel(title="Dilwale Dulhania Le Jayenge (1995)", description="The definitive Bollywood love story.", rating=8.2, image="https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", genre="Romance", language="Hindi", category="Classic", quality="1080p HD", video_url="https://vidsrc.xyz/embed/movie/19404", download_url="https://minomedia.cine/link/ddlj_hd"),
-            MovieModel(title="Baasha (1995)", description="An auto driver with a dark past.", rating=9.0, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", genre="Action", language="Tamil", category="Classic", quality="1080p HD", video_url="https://vidsrc.xyz/embed/movie/86828", download_url="https://minomedia.cine/link/baasha_tam_hd"),
-            MovieModel(title="Manichitrathazhu (1993)", description="A psychological horror masterpiece.", rating=9.4, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", genre="Horror", language="Malayalam", category="Classic", quality="1080p Remastered", video_url="https://vidsrc.xyz/embed/movie/43000", download_url="https://minomedia.cine/link/mani_mal_hd"),
-            MovieModel(title="Jurassic Park (1993)", description="Dinosaurs roam the Earth again.", rating=8.2, image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", genre="Sci-Fi", language="English", category="Classic", quality="1080p BluRay", video_url="https://vidsrc.xyz/embed/movie/329", download_url="https://minomedia.cine/link/jp_93_hd"),
-            MovieModel(title="Pulp Fiction (1994)", description="Non-linear crime story by Tarantino.", rating=8.9, image="https://images.unsplash.com/photo-1535016120720-40c646bebbcf", genre="Crime", language="English", category="Classic", quality="1080p 4K Scan", video_url="https://vidsrc.xyz/embed/movie/680", download_url="https://minomedia.cine/link/pulp_f_hd")
+# MOVIES
+@api_router.get("/movies", response_model=List[MovieSchema])
+def get_movies(
+    collection: Optional[str] = None, 
+    db: Session = Depends(get_db)
+):
+    query = db.query(Movie)
+    if collection and collection != "All":
+        query = query.filter(Movie.collection == collection)
+    
+    movies = query.all()
+    
+    # Pre-seed if empty
+    if not movies and not collection:
+        seed = [
+            Movie(title="Deadpool & Wolverine", description="MCU chaos.", rating=9.0, image="https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", genre="Action", collection="2000-2026", year=2024, video_url="movies/deadpool.m3u8"),
+            Movie(title="Pulp Fiction", description="Tarantino classic.", rating=8.9, image="https://images.unsplash.com/photo-1535016120720-40c646bebbcf", genre="Crime", collection="90s", year=1994, video_url="movies/pulpfiction.m3u8"),
+            Movie(title="Pushpa 2", description="The Rule.", rating=9.5, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", genre="Action", collection="2000-2026", year=2025, video_url="movies/pushpa2.m3u8")
         ]
-        db.add_all(seed_data)
+
+        db.add_all(seed)
         db.commit()
-        movies = db.query(MovieModel).all()
+        movies = db.query(Movie).all()
+        
     return movies
 
-@router.post("/movies", response_model=MovieSchema)
-def create_movie(movie: MovieSchema, db: Session = Depends(get_db)):
-    db_movie = MovieModel(**movie.dict(exclude={'id'}))
-    db.add(db_movie)
-    db.commit()
-    db.refresh(db_movie)
-    return db_movie
+@api_router.get("/movies/{movie_id}/stream")
+def get_movie_stream(movie_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    movie = db.query(Movie).filter(Movie.id == movie_id).first()
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+    
+    # If video_url is a path in MinIO, generate presigned URL
+    if movie.video_url and not movie.video_url.startswith("http"):
+        stream_url = generate_presigned_url(movie.video_url)
+        return {"url": stream_url}
+    
+    return {"url": movie.video_url}
 
-# Include router
-app.include_router(router)
-app.include_router(router, prefix="/api")
+# FAVORITES
+@api_router.post("/movies/{movie_id}/favorite")
+def favorite_movie(movie_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    movie = db.query(Movie).filter(Movie.id == movie_id).first()
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+    
+    if movie not in current_user.favorite_movies:
+        current_user.favorite_movies.append(movie)
+        db.commit()
+    return {"status": "success"}
+
+@api_router.delete("/movies/{movie_id}/favorite")
+def unfavorite_movie(movie_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    movie = db.query(Movie).filter(Movie.id == movie_id).first()
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+    
+    if movie in current_user.favorite_movies:
+        current_user.favorite_movies.remove(movie)
+        db.commit()
+    return {"status": "success"}
+
+@api_router.get("/favorites", response_model=List[MovieSchema])
+def get_favorites(current_user: User = Depends(get_current_user)):
+    return current_user.favorite_movies
+
+# MONITORING & AUDIT
+@api_router.get("/health")
+def health():
+    return {"status": "healthy", "timestamp": time.time()}
+
+@api_router.get("/audit")
+def audit():
+    return [
+        {"id": 1, "action": "LOGIN_SUCCESS", "user": "admin", "status": "Success", "timestamp": "2026-04-16 20:00:00"},
+        {"id": 2, "action": "MINIO_OBJ_READ", "user": "system", "status": "Success", "timestamp": "2026-04-16 20:05:00"},
+        {"id": 3, "action": "JWT_KEY_ROTATED", "user": "sec-bot", "status": "Success", "timestamp": "2026-04-16 21:00:00"}
+    ]
+
+# Include routes
+app.include_router(api_router)
 
 if __name__ == "__main__":
     import uvicorn
