@@ -264,8 +264,32 @@ const VideoModal = ({ movie, isOpen, onClose }: { movie: Movie | null, isOpen: b
                    <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
                 </div>
                 <div className="flex gap-4">
-                  <a href={`vlc://${movie.download_url}`} className="bg-blue-600 text-white px-4 py-2 rounded text-[8px] font-black uppercase">Open in VLC</a>
-                  <a href={`intent:${movie.download_url}#Intent;package=com.mxtech.videoplayer.ad;end`} className="bg-green-600 text-white px-4 py-2 rounded text-[8px] font-black uppercase">Open in MX Player</a>
+                  <a 
+                    href={(() => {
+                      const id = movie.video_url?.split('/').pop() || '';
+                      let base = '';
+                      if (activeServer === 'Server 1 (XYZ)') base = `https://vidsrc.xyz/embed/movie/${id}`;
+                      else if (activeServer === 'Server 2 (TO)') base = `https://vidsrc.to/embed/movie/${id}`;
+                      else base = `https://vidsrc.me/embed/movie/${id}`;
+                      return `vlc://${base}`;
+                    })()} 
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-[8px] font-black uppercase transition-all shadow-lg shadow-blue-600/20"
+                  >
+                    Open in VLC
+                  </a>
+                  <a 
+                    href={(() => {
+                      const id = movie.video_url?.split('/').pop() || '';
+                      let base = '';
+                      if (activeServer === 'Server 1 (XYZ)') base = `https://vidsrc.xyz/embed/movie/${id}`;
+                      else if (activeServer === 'Server 2 (TO)') base = `https://vidsrc.to/embed/movie/${id}`;
+                      else base = `https://vidsrc.me/embed/movie/${id}`;
+                      return `intent:${base}#Intent;package=com.mxtech.videoplayer.ad;S.title=${encodeURIComponent(movie.title)};end`;
+                    })()} 
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-[8px] font-black uppercase transition-all shadow-lg shadow-green-600/20"
+                  >
+                    Open in MX Player
+                  </a>
                 </div>
               </div>
             </div>
