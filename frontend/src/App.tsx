@@ -6,9 +6,9 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
 import { 
-  Film, Star, MapPin, Activity, ShieldCheck, 
-  Plus, X, Cpu, MessageCircle, Send, User, Key,
-  Shield, Settings, Lock, CreditCard
+  Film, Star, Activity, ShieldCheck, 
+  X, Cpu, MessageCircle, Send, User, Key,
+  Shield, Settings, Lock, CreditCard, ExternalLink, Search, Zap
 } from 'lucide-react';
 
 // --- CONSTANTS ---
@@ -137,12 +137,84 @@ const Chatbot = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      <button onClick={() => setOpen(!isOpen)} className="w-14 h-14 bg-purple-600 rounded-full flex items-center justify-center shadow-2xl shadow-purple-600/40 hover:scale-110 transition-transform">
-        <MessageCircle className="text-white w-7 h-7" />
+      <button onClick={() => setOpen(!isOpen)} className="w-14 h-14 bg-orange-600 rounded-full flex items-center justify-center shadow-2xl shadow-orange-600/40 hover:scale-110 transition-transform">
+        <div className="relative">
+          <MessageCircle className="text-white w-7 h-7" />
+          <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-[#111]" />
+        </div>
       </button>
     </div>
   );
 };
+
+const ExternalPlayerLinks = ({ url, title }: { url: string, title: string }) => {
+  const vlcLink = `vlc://${url}`;
+  const mxLink = `intent:${url}#Intent;package=com.mxtech.videoplayer.ad;S.title=${encodeURIComponent(title)};end`;
+
+  return (
+    <div className="flex gap-2 mt-4">
+      <a href={vlcLink} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-[8px] font-black uppercase py-2 rounded-lg text-center transition-colors">Play in VLC</a>
+      <a href={mxLink} className="flex-1 bg-green-600 hover:bg-green-700 text-white text-[8px] font-black uppercase py-2 rounded-lg text-center transition-colors">Play in MX Player</a>
+    </div>
+  );
+};
+
+
+const GeneratedLinksTab = () => {
+  const [links, setLinks] = useState<Movie[]>([]);
+  
+  useEffect(() => {
+    const saved = localStorage.getItem('generated_links');
+    if (saved) setLinks(JSON.parse(saved));
+    
+    const handleUpdate = () => {
+      const updated = localStorage.getItem('generated_links');
+      if (updated) setLinks(JSON.parse(updated));
+    };
+    
+    window.addEventListener('linksUpdated', handleUpdate);
+    return () => window.removeEventListener('linksUpdated', handleUpdate);
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-3xl font-black uppercase italic">Mino <span className="text-purple-500">Premium Links</span></h2>
+        <span className="text-[10px] font-black uppercase bg-purple-600/20 text-purple-400 px-4 py-2 rounded-full border border-purple-500/30">Verified Assets</span>
+      </div>
+      
+      {links.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {links.map((movie, i) => (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} key={`${movie.id}-${i}`} className="glass-card p-4 border-white/5 bg-white/5 hover:bg-white/10 transition-all flex gap-4">
+              <div className="w-20 h-28 rounded-xl overflow-hidden flex-shrink-0">
+                <img src={movie.image} alt="" className="w-full h-full object-cover" />
+              </div>
+              <div className="flex flex-col justify-between py-1">
+                <div>
+                  <h4 className="text-sm font-black uppercase italic leading-none mb-1">{movie.title}</h4>
+                  <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">{movie.quality} • {movie.language}</p>
+                </div>
+                <div className="flex flex-col gap-2">
+                   <a href={movie.download_url} target="_blank" rel="noreferrer" className="text-[9px] font-black uppercase text-purple-500 hover:text-white flex items-center gap-2">
+                     <ExternalLink className="w-3 h-3" /> Get Original Link
+                   </a>
+                   <span className="text-[7px] font-black text-green-500 uppercase tracking-widest">Status: Ready to Stream</span>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      ) : (
+        <div className="py-20 text-center glass-card border-white/5 border-dashed bg-transparent">
+          <Film className="w-10 h-10 text-gray-700 mx-auto mb-4" />
+          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">No premium links generated yet. Click 'Watch' on any movie.</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 
 const VideoModal = ({ movie, isOpen, onClose }: { movie: Movie | null, isOpen: boolean, onClose: () => void }) => {
   const [activeServer, setActiveServer] = useState('Server 1 (FAST)');
@@ -154,10 +226,13 @@ const VideoModal = ({ movie, isOpen, onClose }: { movie: Movie | null, isOpen: b
           <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 30 }} className="w-full max-w-6xl aspect-video bg-[#050505] rounded-[2rem] overflow-hidden relative shadow-[0_0_100px_rgba(139,92,246,0.15)] border border-white/5 flex flex-col">
             <div className="p-6 border-b border-white/5 flex items-center justify-between bg-black/40">
                <div className="flex items-center gap-6">
-                  <h2 className="text-xl font-black uppercase italic tracking-tighter text-white">{movie.title}</h2>
+                  <div className="flex flex-col">
+                    <h2 className="text-xl font-black uppercase italic tracking-tighter text-white">{movie.title}</h2>
+                    <span className="text-[7px] font-black text-orange-500 uppercase tracking-[0.4em] mt-1">Powered by MovieRulz Premium Stream Engine</span>
+                  </div>
                   <div className="flex gap-2">
-                     {['Server 1 (FAST)', 'Server 2 (HD)', 'Direct Link'].map(s => (
-                       <button key={s} onClick={() => setActiveServer(s)} className={`px-4 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${activeServer === s ? 'bg-purple-600 text-white' : 'bg-white/5 text-gray-500 hover:text-white'}`}>
+                     {['Fast Server 1', 'HD Cloud 2', 'Direct 1080p'].map(s => (
+                       <button key={s} onClick={() => setActiveServer(s)} className={`px-4 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${activeServer === s ? 'bg-orange-600 text-white' : 'bg-white/5 text-gray-500 hover:text-white'}`}>
                          {s}
                        </button>
                      ))}
@@ -176,10 +251,16 @@ const VideoModal = ({ movie, isOpen, onClose }: { movie: Movie | null, isOpen: b
               />
             </div>
 
-            <div className="p-8 bg-gradient-to-t from-black via-black/80 to-transparent absolute bottom-0 left-0 right-0 pointer-events-none">
-              <div className="flex items-center gap-3">
-                 <span className="text-[10px] font-black text-purple-500 uppercase tracking-widest">Now Streaming in {movie.quality}</span>
-                 <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+            <div className="p-8 bg-gradient-to-t from-black via-black/80 to-transparent absolute bottom-0 left-0 right-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                   <span className="text-[10px] font-black text-orange-500 uppercase tracking-widest">Streaming in 1080p Full HD</span>
+                   <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+                </div>
+                <div className="flex gap-4">
+                  <a href={`vlc://${movie.download_url}`} className="bg-blue-600 text-white px-4 py-2 rounded text-[8px] font-black uppercase">Open in VLC</a>
+                  <a href={`intent:${movie.download_url}#Intent;package=com.mxtech.videoplayer.ad;end`} className="bg-green-600 text-white px-4 py-2 rounded text-[8px] font-black uppercase">Open in MX Player</a>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -189,10 +270,12 @@ const VideoModal = ({ movie, isOpen, onClose }: { movie: Movie | null, isOpen: b
   );
 };
 
-const AddMovieModal = ({ isOpen, onClose, onAdd }: { isOpen: boolean, onClose: () => void, onAdd: () => void }) => {
+const AddMovieModal = ({ isOpen, onClose, onAdd, setStreamingStatus }: { isOpen: boolean, onClose: () => void, onAdd: () => void, setStreamingStatus: (s: string | null) => void }) => {
   const [formData, setFormData] = useState({
     title: '', description: '', rating: 8.5, genre: 'Action', language: 'English', category: 'Latest', 
-    image: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1'
+    image: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1',
+    quality: '1080p Full HD',
+    video_url: 'https://vidsrc.to/embed/movie/550' // Default to Fight Club for new additions for demo
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -210,17 +293,52 @@ const AddMovieModal = ({ isOpen, onClose, onAdd }: { isOpen: boolean, onClose: (
           <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="glass-card w-full max-w-lg p-10 border-white/10 relative overflow-hidden bg-[#111]">
             <button onClick={onClose} className="absolute top-6 right-6"><X /></button>
             <h2 className="text-2xl font-black uppercase italic mb-8">Deploy New <span className="text-purple-500">Asset</span></h2>
+            <div className="flex items-center gap-2 mb-8 bg-purple-600/10 p-4 rounded-xl border border-purple-500/20">
+               <Cpu className="w-5 h-5 text-purple-500 animate-pulse" />
+               <p className="text-[10px] font-black uppercase tracking-widest text-purple-400">AI Discovery Engine Active</p>
+            </div>
+
             <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
-              <div className="col-span-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">Movie Title</label>
-                <input required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-purple-500 outline-none" placeholder="Search title..." />
+              <div className="col-span-2 relative">
+                <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">Movie Title (AI Auto-Scan)</label>
+                <div className="flex gap-2">
+                  <input 
+                    required 
+                    value={formData.title} 
+                    onChange={e => setFormData({...formData, title: e.target.value})} 
+                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-purple-500 outline-none" 
+                    placeholder="Enter movie title..." 
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setStreamingStatus(`AI Scanning global databases for ${formData.title}...`);
+                      setTimeout(() => {
+                        setFormData({
+                          ...formData,
+                          description: `AI localized summary for ${formData.title}. High-quality 1080p stream ready.`,
+                          rating: 8.5 + (Math.random() * 1),
+                          quality: "1080p Full HD"
+                        });
+                        setStreamingStatus(`AI found verified asset! Metadata synced.`);
+                        setTimeout(() => setStreamingStatus(null), 2000);
+                      }, 1500);
+                    }}
+                    className="px-4 bg-purple-600 rounded-xl hover:bg-purple-500 transition-colors"
+                  >
+                    <Search className="w-4 h-4 text-white" />
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="text-[10px] font-black text-gray-500 uppercase block mb-1">Language</label>
                 <select value={formData.language} onChange={e => setFormData({...formData, language: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-purple-500 outline-none">
                   <option value="English">English</option>
+                  <option value="Telugu">Telugu</option>
                   <option value="Hindi">Hindi</option>
-                  <option value="Spanish">Spanish</option>
+                  <option value="Tamil">Tamil</option>
+                  <option value="Malayalam">Malayalam</option>
+                  <option value="Kannada">Kannada</option>
                 </select>
               </div>
               <div>
@@ -228,11 +346,12 @@ const AddMovieModal = ({ isOpen, onClose, onAdd }: { isOpen: boolean, onClose: (
                 <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-purple-500 outline-none">
                   <option value="Latest">Latest Release</option>
                   <option value="Popular">Popular Choice</option>
+                  <option value="Classic">Classic Gold</option>
                 </select>
               </div>
               <div className="col-span-2">
                  <button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:scale-[1.02] transition-transform">
-                   Commit to Blockchain DB
+                   Inject Into Global Shard
                  </button>
               </div>
             </form>
@@ -245,9 +364,8 @@ const AddMovieModal = ({ isOpen, onClose, onAdd }: { isOpen: boolean, onClose: (
 
 // --- PAGES ---
 
-const MovieGrid = () => {
+const MovieGrid = ({ category, setCategory }: { category: string, setCategory: (c: string) => void }) => {
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [category, setCategory] = useState('Latest');
   const [isModalOpen, setModalOpen] = useState(false);
   const [streamingStatus, setStreamingStatus] = useState<string | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<Movie | null>(null);
@@ -261,22 +379,24 @@ const MovieGrid = () => {
       console.error("Failed to fetch movies", err);
     }
   };
+  
   useEffect(() => { fetchMovies(); }, []);
 
   const handleStream = (movie: Movie) => {
-    setStreamingStatus(`Bypassing firewall for secure stream: ${movie.title}...`);
+    setStreamingStatus(`Bypassing firewall via Mino Media Engine: ${movie.title}...`);
+    
+    const saved = localStorage.getItem('generated_links');
+    const links = saved ? JSON.parse(saved) : [];
+    if (!links.find((l: Movie) => l.id === movie.id)) {
+      const updated = [movie, ...links].slice(0, 10);
+      localStorage.setItem('generated_links', JSON.stringify(updated));
+      window.dispatchEvent(new Event('linksUpdated'));
+    }
+
     setTimeout(() => {
       setSelectedVideo(movie);
       setStreamingStatus(null);
     }, 1500);
-  };
-
-  const handleDownload = (movie: Movie, quality: string) => {
-    setStreamingStatus(`Generating ${quality} Magnet Link...`);
-    setTimeout(() => {
-      setStreamingStatus(`Final Link: ${movie.download_url} [${quality}]`);
-      setTimeout(() => setStreamingStatus(null), 6000);
-    }, 1200);
   };
 
   const filteredMovies = useMemo(() => {
@@ -299,107 +419,111 @@ const MovieGrid = () => {
       )}
 
       <div className="flex flex-col lg:flex-row gap-12">
-        {/* SIDEBAR NAVIGATION */}
-        <aside className="lg:w-64 space-y-10">
-          <div>
-            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-6">Security Search</h3>
-            <div className="relative">
-              <input 
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search Database..." 
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[10px] font-black uppercase outline-none focus:border-purple-500 transition-colors" 
-              />
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-6">Master Categories</h3>
-            <nav className="space-y-2">
-              {['Latest', 'Present', 'Classic', 'All'].map(cat => (
-                <button 
-                  key={cat} 
-                  onClick={() => setCategory(cat)}
-                  className={`w-full text-left px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${category === cat ? 'bg-white text-black' : 'text-gray-500 hover:bg-white/5'}`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </nav>
-          </div>
-
-          <div>
-            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-6">By Genre</h3>
-            <div className="flex flex-wrap gap-2">
-              {['Action', 'Sci-Fi', 'Crime', 'Drama'].map(genre => (
-                <button key={genre} onClick={() => setCategory(genre)} className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black uppercase text-gray-400 hover:border-purple-500 hover:text-white transition-all">
-                  {genre}
-                </button>
-              ))}
-            </div>
-          </div>
-        </aside>
-
         {/* MOVIE CONTENT AREA */}
-        <div className="flex-1">
-          <div className="mb-12 flex items-center justify-between">
-            <h2 className="text-5xl font-black uppercase italic leading-none">{category}<span className="text-purple-600"> Database</span></h2>
-            <button onClick={() => setModalOpen(true)} className="flex items-center gap-2 bg-white text-black px-6 py-3 rounded-xl text-[10px] font-black uppercase hover:bg-purple-600 hover:text-white transition-all">
-              <Plus className="w-4 h-4" /> Add Movie
-            </button>
+        <div className="flex-1 max-w-5xl">
+          <div className="mb-6 flex flex-wrap items-center gap-2">
+            {['All', 'Telugu', 'Tamil', 'Hindi', 'Malayalam', 'Kannada', 'English'].map(lang => (
+              <button 
+                key={lang} 
+                onClick={() => setCategory(lang)}
+                className={`px-4 py-1.5 rounded-sm text-[9px] font-bold uppercase transition-all ${category === lang ? 'bg-orange-600 text-white' : 'bg-[#222] text-gray-400 hover:text-white border border-gray-700'}`}
+              >
+                {lang}
+              </button>
+            ))}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-10">
+          <div className="bg-[#1a1a1a] p-1 border-b border-gray-800 mb-6">
+             <h2 className="text-[10px] font-bold text-orange-500 uppercase px-3 py-1 bg-white/5 border-l-2 border-orange-500">Featured Movies</h2>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {filteredMovies.length > 0 ? filteredMovies.map(movie => (
               <motion.div 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
                 key={movie.id} 
-                className="group relative rounded-3xl overflow-hidden bg-[#111] border border-white/5 transition-all duration-700 hover:border-purple-500/50"
+                className="group relative bg-[#1c1c1c] border border-gray-800 hover:border-orange-500/50 transition-all rounded-sm overflow-hidden"
               >
-                 <div className="aspect-[3/4] overflow-hidden relative">
-                    <img src={movie.image} alt={movie.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100" />
-                    <div className="absolute top-4 right-4 bg-purple-600 px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest text-white shadow-xl shadow-purple-600/40">
+                 <div className="aspect-[2/3] overflow-hidden relative">
+                    <img src={movie.image} alt={movie.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <div className="absolute top-2 left-2 bg-orange-600 px-2 py-0.5 rounded-sm text-[7px] font-black uppercase text-white">
                        {movie.quality}
                     </div>
                     
-                    <div className="absolute inset-x-0 bottom-0 p-8 bg-gradient-to-t from-black via-black/80 to-transparent">
-                       <h3 className="text-2xl font-black uppercase italic mb-2 tracking-tighter truncate">{movie.title}</h3>
-                       <div className="flex items-center gap-4 mb-6">
-                          <div className="flex items-center gap-1">
-                            <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                            <span className="text-[10px] font-black">{movie.rating}</span>
+                    <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black via-black/90 to-transparent">
+                       <h3 className="text-[10px] font-bold text-white mb-1 leading-tight group-hover:text-orange-500 transition-colors">{movie.title}</h3>
+                       <div className="flex items-center gap-2 mb-3">
+                          <div className="flex items-center gap-0.5">
+                            <Star className="w-2 h-2 text-orange-500 fill-orange-500" />
+                            <span className="text-[8px] font-black text-white">{movie.rating}</span>
                           </div>
-                          <span className="text-[8px] font-black uppercase text-gray-500 px-2 py-0.5 border border-white/10 rounded">{movie.language}</span>
+                          <span className="text-[7px] font-black uppercase text-gray-500">{movie.language}</span>
                        </div>
 
-                       <div className="space-y-4">
+                       <div className="space-y-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button 
                             onClick={() => handleStream(movie)}
-                            className="w-full bg-white text-black py-4 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 hover:bg-purple-600 hover:text-white transition-all"
+                            className="w-full bg-orange-600 text-white py-2 rounded-sm text-[8px] font-black uppercase flex items-center justify-center gap-1 hover:bg-orange-700"
                           >
-                            Watch HD Stream
+                            <Zap className="w-2 h-2" /> Stream 1080p
                           </button>
                           
-                          <div className="grid grid-cols-2 gap-2 pt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                             <button onClick={() => handleDownload(movie, '720p')} className="bg-white/5 hover:bg-white/10 text-white py-2 rounded-lg border border-white/10 text-[8px] font-black uppercase transition-all">720p (900MB)</button>
-                             <button onClick={() => handleDownload(movie, '1080p')} className="bg-white/5 hover:bg-white/10 text-white py-2 rounded-lg border border-white/10 text-[8px] font-black uppercase transition-all">1080p (2.4GB)</button>
+                          <div className="grid grid-cols-2 gap-1">
+                             <a href={movie.download_url} target="_blank" rel="noreferrer" className="bg-gray-800 hover:bg-gray-700 text-white py-1 rounded-sm text-[7px] font-black uppercase text-center border border-gray-700">Download</a>
+                             <button onClick={() => handleStream(movie)} className="bg-gray-800 hover:bg-gray-700 text-white py-1 rounded-sm text-[7px] font-black uppercase border border-gray-700">Direct Link</button>
                           </div>
+                          
+                          <ExternalPlayerLinks url={movie.download_url || ""} title={movie.title} />
                        </div>
                     </div>
                  </div>
               </motion.div>
             )) : (
-              <div className="col-span-full py-40 text-center glass-card border-white/5">
-                 <Film className="w-12 h-12 text-gray-700 mx-auto mb-6" />
-                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 italic">No assets found in current database shard.</p>
+              <div className="col-span-full py-40 text-center border border-gray-800 rounded-lg">
+                 <Film className="w-8 h-8 text-gray-800 mx-auto mb-4" />
+                 <p className="text-[8px] font-black uppercase text-gray-600">Database Entry Not Found.</p>
               </div>
             )}
           </div>
         </div>
+
+        {/* RIGHT SIDEBAR - RECENT UPDATES */}
+        <aside className="hidden lg:block lg:w-80 space-y-6">
+           <div className="bg-[#111] border border-gray-800 p-4">
+              <h3 className="text-[10px] font-bold uppercase text-orange-500 border-b border-gray-800 pb-2 mb-4">Recent and Updated Movies</h3>
+              <div className="space-y-3">
+                 {movies.slice(0, 8).map(m => (
+                   <div key={m.id} className="flex gap-3 group cursor-pointer">
+                      <div className="w-10 h-14 bg-gray-800 rounded-sm overflow-hidden flex-shrink-0">
+                         <img src={m.image} alt="" className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                         <p className="text-[9px] font-bold text-gray-300 group-hover:text-orange-500 transition-colors truncate">{m.title}</p>
+                         <p className="text-[7px] text-gray-500 uppercase mt-1">{m.language} • {m.quality}</p>
+                      </div>
+                   </div>
+                 ))}
+              </div>
+           </div>
+
+           <div className="bg-[#111] border border-gray-800 p-4">
+              <h3 className="text-[10px] font-bold uppercase text-gray-400 border-b border-gray-800 pb-2 mb-4">Meta Status</h3>
+              <div className="flex items-center gap-2 mb-4">
+                 <div className="w-2 h-2 rounded-full bg-green-500 shadow-lg shadow-green-500/20" />
+                 <span className="text-[8px] font-bold text-gray-500">Fast CDN Nodes Active</span>
+              </div>
+              <button 
+                onClick={() => setModalOpen(true)}
+                className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-sm text-[8px] font-bold uppercase transition-all"
+              >
+                Request Movie / Upload
+              </button>
+           </div>
+        </aside>
       </div>
 
-      <AddMovieModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} onAdd={fetchMovies} />
+      <AddMovieModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} onAdd={fetchMovies} setStreamingStatus={setStreamingStatus} />
       <VideoModal movie={selectedVideo} isOpen={!!selectedVideo} onClose={() => setSelectedVideo(null)} />
     </div>
   );
@@ -524,6 +648,7 @@ const ProfilePage = () => {
           <nav className="space-y-2">
             {[
               { id: 'Overview', icon: User },
+              { id: 'My Links', icon: Key },
               { id: 'Security', icon: Shield },
               { id: 'Settings', icon: Settings },
               { id: 'Subscription', icon: CreditCard }
@@ -540,10 +665,18 @@ const ProfilePage = () => {
           </nav>
         </aside>
 
-        <main className="lg:w-3/4">
+        <main className="lg:w-3/4 min-h-[500px]">
           <AnimatePresence mode="wait">
+            {activeTab === 'My Links' && (
+              <motion.div key="mylinks" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                <div className="glass-card p-10 border-white/5 bg-[#0e0e0e]">
+                   <GeneratedLinksTab />
+                </div>
+              </motion.div>
+            )}
+
             {activeTab === 'Security' && (
-              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
+              <motion.div key="security" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                 <div className="glass-card p-10 border-white/5">
                   <h2 className="text-3xl font-black uppercase italic mb-8">Security <span className="text-purple-500">Settings</span></h2>
                   <div className="space-y-6">
@@ -574,8 +707,8 @@ const ProfilePage = () => {
               </motion.div>
             )}
 
-            {activeTab !== 'Security' && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card p-20 border-white/5 text-center">
+            {activeTab !== 'Security' && activeTab !== 'My Links' && (
+              <motion.div key="other" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card p-20 border-white/5 text-center">
                 <p className="text-xs font-black text-gray-500 uppercase tracking-widest italic">Section {activeTab} is currently being hardened.</p>
               </motion.div>
             )}
@@ -590,21 +723,12 @@ const ProfilePage = () => {
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoginOpen, setLoginOpen] = useState(false);
-  const [city, setCity] = useState('Mumbai');
+  const [category, setCategory] = useState('All');
 
   useEffect(() => {
     // Check if user was previously "logged in" for this demo
     const auth = localStorage.getItem('cinebook_auth');
     if (auth === 'true') setIsAuthenticated(true);
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        try {
-          const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
-          setCity(res.data.address.city || res.data.address.town || 'Detected');
-        } catch (e) {}
-      });
-    }
   }, []);
 
   const handleLogin = () => {
@@ -657,25 +781,21 @@ function App() {
     <Router>
       <div className="min-h-screen bg-[#0a0a0a] text-white selection:bg-purple-600/30 font-sans">
         {isAuthenticated && (
-          <nav className="fixed top-0 left-0 right-0 z-50 py-4 px-6 border-b border-white/5 bg-black/60 backdrop-blur-2xl">
+          <nav className="fixed top-0 left-0 right-0 z-50 py-3 px-6 border-b border-gray-800 bg-[#111]">
              <div className="max-w-7xl mx-auto flex items-center justify-between">
                 <Link to="/" className="flex items-center gap-3">
-                   <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-600/20">
-                      <Film className="w-5 h-5" />
+                   <div className="w-8 h-8 bg-orange-600 rounded-sm flex items-center justify-center shadow-lg shadow-orange-600/20">
+                      <Film className="w-4 h-4 text-white" />
                    </div>
-                   <span className="text-2xl font-black tracking-tighter italic">CINE<span className="text-purple-600">STREAM</span></span>
+                   <span className="text-xl font-bold tracking-tighter text-white">Movie<span className="text-orange-600">Rulz</span></span>
                 </Link>
-                <div className="hidden md:flex items-center gap-8 text-[11px] font-black uppercase tracking-widest text-gray-500">
-                   <Link to="/" className="hover:text-white transition-colors">Movies</Link>
-                   <Link to="/monitoring" className="hover:text-white transition-colors">Monitoring</Link>
-                   <Link to="/security" className="hover:text-white transition-colors">Security</Link>
-                   <Link to="/profile" className="hover:text-white transition-colors">Profile</Link>
+                <div className="hidden md:flex items-center gap-6 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                   {['Home', 'Latest', 'Telugu', 'Tamil', 'Hindi', 'Malayalam', 'Kannada'].map(nav => (
+                     <Link key={nav} to="/" className="hover:text-orange-500 transition-colors" onClick={() => setCategory(nav === 'Home' ? 'All' : nav)}>{nav}</Link>
+                   ))}
                 </div>
                 <div className="flex items-center gap-4">
-                   <div className="hidden sm:flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/10 text-[9px] font-black uppercase tracking-widest text-gray-400">
-                      <MapPin className="w-3 h-3 text-purple-600" /> {city}
-                   </div>
-                   <button onClick={handleLogout} className="bg-white/5 text-white border border-white/10 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-600 hover:border-red-600 transition-all">
+                   <button onClick={handleLogout} className="bg-gray-800 text-white border border-gray-700 px-4 py-1.5 rounded-sm text-[9px] font-bold uppercase hover:bg-red-600 transition-all">
                       Logout
                    </button>
                 </div>
@@ -684,7 +804,7 @@ function App() {
         )}
 
         <Routes>
-          <Route path="/" element={isAuthenticated ? <MovieGrid /> : <LandingPage />} />
+          <Route path="/" element={isAuthenticated ? <MovieGrid category={category} setCategory={setCategory} /> : <LandingPage />} />
           <Route path="/monitoring" element={isAuthenticated ? <MonitoringPage /> : <LandingPage />} />
           <Route path="/security" element={isAuthenticated ? <SecurityPage /> : <LandingPage />} />
           <Route path="/profile" element={isAuthenticated ? <ProfilePage /> : <LandingPage />} />
