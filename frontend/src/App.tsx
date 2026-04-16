@@ -7,8 +7,7 @@ import 'video.js/dist/video-js.css';
 import { 
   Film, Star, X, MessageCircle, User, 
   Zap, LogOut, Play, Search, Heart,
-  ChevronRight, ChevronLeft, Info, Settings,
-
+  ChevronRight, ChevronLeft, Settings,
   BarChart, Upload, Users, Monitor
 } from 'lucide-react';
 
