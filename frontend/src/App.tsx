@@ -201,7 +201,9 @@ const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
 
        {/* Rows */}
        <div className="-mt-32 relative z-20">
+          <MovieRow title="All Movies Library" movies={Object.values(moviesByCat).flat()} onSelect={onSelect} />
           {categories.map(cat => (
+
             <MovieRow 
               key={cat.id} 
               title={cat.name} 
@@ -250,20 +252,21 @@ const ExplorePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
                className="bg-white/5 border border-white/10 rounded-xl px-6 py-3 text-[10px] font-black uppercase outline-none"
                onChange={e => setFilters({...filters, language: e.target.value})}
              >
-                <option value="">Language</option>
-                {['Telugu', 'Hindi', 'English', 'Tamil', 'Malayalam'].map(l => <option key={l} value={l}>{l}</option>)}
+                <option value="">All Languages</option>
+                {['Telugu', 'Hindi', 'English', 'Tamil', 'Malayalam', 'Kannada'].map(l => <option key={l} value={l}>{l}</option>)}
              </select>
              <select 
                className="bg-white/5 border border-white/10 rounded-xl px-6 py-3 text-[10px] font-black uppercase outline-none"
                onChange={e => setFilters({...filters, year: e.target.value})}
              >
-                <option value="">Year</option>
-                {[2026, 2025, 2024, 2023, 2022, 1990].map(y => <option key={y} value={y}>{y}</option>)}
+                <option value="">All Years</option>
+                {Array.from({ length: 2026 - 1989 }, (_, i) => 2026 - i).map(y => <option key={y} value={y.toString()}>{y}</option>)}
              </select>
           </div>
        </div>
 
        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-6">
+
           {movies.map(movie => (
             <motion.div 
                layout

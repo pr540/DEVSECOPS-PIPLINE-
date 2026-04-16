@@ -197,16 +197,25 @@ def admin_upload(
 
 def _seed(db: Session):
     if db.query(Category).count() == 0:
-        cats = [Category(name="Action"), Category(name="Comedy"), Category(name="Sci-Fi"), Category(name="90s Classics")]
+        cats = [Category(name="Action"), Category(name="Comedy"), Category(name="Sci-Fi"), Category(name="Drama"), Category(name="Thriller")]
         db.add_all(cats)
         db.commit()
     
-    cat_id = db.query(Category).first().id
-    movies = [
-        Movie(title="Pushpa 2", description="The Rule Begins", rating=9.5, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", language="Telugu", quality="1080p", video_url="movies/pushpa2.m3u8", year=2025, category_id=cat_id),
-        Movie(title="Deadpool & Wolverine", description="MCU Overload", rating=9.2, image="https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", language="English", quality="1080p", video_url="movies/deadpool.m3u8", year=2024, category_id=cat_id)
-    ]
-    db.add_all(movies)
-    db.commit()
+    cat = db.query(Category).first()
+    if db.query(Movie).count() == 0:
+        movies = [
+            Movie(title="Pushpa 2: The Rule", description="Action blockbuster.", rating=9.5, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", language="Telugu", quality="1080p", video_url="movies/pushpa2.m3u8", year=2025, category_id=cat.id),
+            Movie(title="Pathaan", description="Spy thriller.", rating=8.0, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", language="Hindi", quality="1080p", video_url="movies/pathaan.m3u8", year=2023, category_id=cat.id),
+            Movie(title="The Dark Knight", description="Nolan's best.", rating=9.0, image="https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", language="English", quality="1080p", video_url="movies/tdk.m3u8", year=2008, category_id=cat.id),
+            Movie(title="Lucifer", description="King of underworld.", rating=8.5, image="https://images.unsplash.com/photo-1535016120720-40c646bebbcf", language="Malayalam", quality="1080p", video_url="movies/lucifer.m3u8", year=2019, category_id=cat.id),
+            Movie(title="Leo", description="Lokesh cinematic universe.", rating=8.2, image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", language="Tamil", quality="1080p", video_url="movies/leo.m3u8", year=2023, category_id=cat.id),
+            Movie(title="KGF Chapter 2", description="Rocky's empire.", rating=8.8, image="https://images.unsplash.com/photo-1535016120720-40c646bebbcf", language="Kannada", quality="1080p", video_url="movies/kgf2.m3u8", year=2022, category_id=cat.id),
+            Movie(title="Drishyam", description="The perfect alibi.", rating=8.9, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", language="Malayalam", quality="1080p", video_url="movies/drishyam.m3u8", year=2013, category_id=cat.id),
+            Movie(title="Bahubali: The Beginning", description="Epic saga.", rating=8.7, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", language="Telugu", quality="1080p", video_url="movies/bahubali.m3u8", year=2015, category_id=cat.id),
+            Movie(title="RRR", description="Action epic.", rating=8.8, image="https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", language="Telugu", quality="1080p", video_url="movies/rrr.m3u8", year=2022, category_id=cat.id)
+        ]
+        db.add_all(movies)
+        db.commit()
+
 
 app.include_router(api)
