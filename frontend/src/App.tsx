@@ -217,7 +217,7 @@ const GeneratedLinksTab = () => {
 
 
 const VideoModal = ({ movie, isOpen, onClose }: { movie: Movie | null, isOpen: boolean, onClose: () => void }) => {
-  const [activeServer, setActiveServer] = useState('Server 1 (FAST)');
+  const [activeServer, setActiveServer] = useState('Server 1 (XYZ)');
   if (!movie) return null;
   return (
     <AnimatePresence>
@@ -231,7 +231,7 @@ const VideoModal = ({ movie, isOpen, onClose }: { movie: Movie | null, isOpen: b
                     <span className="text-[7px] font-black text-orange-500 uppercase tracking-[0.4em] mt-1">Powered by MovieRulz Premium Stream Engine</span>
                   </div>
                   <div className="flex gap-2">
-                     {['Fast Server 1', 'HD Cloud 2', 'Direct 1080p'].map(s => (
+                     {['Server 1 (XYZ)', 'Server 2 (TO)', 'Server 3 (ME)'].map(s => (
                        <button key={s} onClick={() => setActiveServer(s)} className={`px-4 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${activeServer === s ? 'bg-orange-600 text-white' : 'bg-white/5 text-gray-500 hover:text-white'}`}>
                          {s}
                        </button>
@@ -243,7 +243,13 @@ const VideoModal = ({ movie, isOpen, onClose }: { movie: Movie | null, isOpen: b
             
             <div className="flex-1 bg-black relative">
                <iframe 
-                src={movie.video_url} 
+                src={(() => {
+                  const id = movie.video_url.split('/').pop();
+                  if (activeServer === 'Server 1 (XYZ)') return `https://vidsrc.xyz/embed/movie/${id}`;
+                  if (activeServer === 'Server 2 (TO)') return `https://vidsrc.to/embed/movie/${id}`;
+                  if (activeServer === 'Server 3 (ME)') return `https://vidsrc.me/embed/movie/${id}`;
+                  return movie.video_url;
+                })()} 
                 title={movie.title}
                 className="w-full h-full border-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
