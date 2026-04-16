@@ -255,38 +255,52 @@ const MovieGrid = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        {filteredMovies.map(movie => (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} key={movie.id} className="group relative rounded-2xl overflow-hidden glass-card border-white/5">
+        {filteredMovies.length > 0 ? filteredMovies.map(movie => (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            whileHover={{ y: -10 }}
+            key={movie.id} 
+            className="group relative rounded-2xl overflow-hidden glass-card border-white/5 transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/20"
+          >
              <div className="aspect-[2/3] overflow-hidden relative">
-                <img src={movie.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <img src={movie.image} alt={movie.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                 <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest text-white border border-white/10">
                    {movie.language}
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent flex flex-col justify-end p-6">
                    <div className="mb-2">
-                     <span className="text-[8px] font-black uppercase bg-purple-600 px-2 py-0.5 rounded">{movie.quality || '1080p HD'}</span>
+                     <span className="text-[8px] font-black uppercase bg-purple-600 px-2 py-0.5 rounded shadow-lg shadow-purple-600/40">{movie.quality || '1080p HD'}</span>
                    </div>
-                   <h3 className="text-xl font-black uppercase italic mb-1 truncate">{movie.title}</h3>
+                   <h3 className="text-xl font-black uppercase italic mb-1 truncate group-hover:text-purple-400 transition-colors">{movie.title}</h3>
                    <div className="flex items-center gap-2 mb-4">
                       <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
                       <span className="text-xs font-black">{movie.rating}</span>
                    </div>
-                   <div className="grid grid-cols-2 gap-2">
+                   <div className="grid grid-cols-2 gap-2 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
                      <button 
                       onClick={() => handleStream(movie.title, movie.quality || '1080p')}
-                      className="bg-white/10 hover:bg-white text-white hover:text-black py-3 rounded-xl border border-white/20 text-[9px] font-black uppercase transition-all backdrop-blur-md">
-                        Watch HD
+                      className="bg-white text-black py-3 rounded-xl text-[9px] font-black uppercase hover:bg-purple-600 hover:text-white transition-all">
+                        Stream
                      </button>
                      <button 
-                      onClick={() => alert(`Starting 1080p download for ${movie.title}...`)}
-                      className="bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white py-3 rounded-xl border border-purple-500/30 text-[9px] font-black uppercase transition-all backdrop-blur-md">
-                        Download
+                      onClick={() => alert(`Starting secure download for ${movie.title} (1080p)...`)}
+                      className="bg-white/5 hover:bg-white/10 text-white py-3 rounded-xl border border-white/10 text-[9px] font-black uppercase transition-all backdrop-blur-md">
+                        Get Link
                      </button>
                    </div>
                 </div>
              </div>
           </motion.div>
-        ))}
+        )) : (
+          <div className="col-span-full py-40 text-center">
+             <div className="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <Film className="w-6 h-6 text-gray-500" />
+             </div>
+             <p className="text-xs font-black uppercase tracking-widest text-gray-500">No content available in this category yet.</p>
+             <button onClick={fetchMovies} className="mt-6 text-[10px] font-black uppercase text-purple-500 hover:text-white transition-colors underline">Refresh Library</button>
+          </div>
+        )}
       </div>
       <AddMovieModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} onAdd={fetchMovies} />
     </div>
@@ -582,7 +596,7 @@ function App() {
         <LoginModal isOpen={isLoginOpen} onClose={() => setLoginOpen(false)} />
         
         <footer className="py-20 border-t border-white/5 px-6 text-center">
-           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-700">© 2026 CINEBOOK PLATFORM • SECURED BY DEVSECOPS AUDIT LOGS</p>
+           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-700">© 2026 CINESTREAM PLATFORM • SECURED BY DEVSECOPS AUDIT LOGS</p>
         </footer>
       </div>
     </Router>

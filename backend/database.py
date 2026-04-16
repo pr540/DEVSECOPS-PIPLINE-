@@ -28,6 +28,7 @@ class MovieModel(Base):
     genre = Column(String)
     language = Column(String, default="English")
     category = Column(String, default="Latest")
+    quality = Column(String, default="1080p Full HD")
 
 # Create tables
 Base.metadata.create_all(bind=engine)
