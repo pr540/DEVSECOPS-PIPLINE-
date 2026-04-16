@@ -26,6 +26,8 @@ class MovieModel(Base):
     rating = Column(Float)
     image = Column(String)
     genre = Column(String)
+    language = Column(String, default="English")
+    category = Column(String, default="Latest")
 
 # Create tables
 Base.metadata.create_all(bind=engine)

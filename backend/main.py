@@ -76,9 +76,11 @@ def get_movies(db: Session = Depends(get_db)):
     movies = db.query(MovieModel).all()
     if not movies:
         seed_data = [
-            MovieModel(title="Interstellar", description="Space exploration", rating=8.7, image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", genre="Sci-Fi"),
-            MovieModel(title="The Dark Knight", description="Batman vs Joker", rating=9.0, image="https://images.unsplash.com/photo-1478720568477-152d9b164e26", genre="Action"),
-            MovieModel(title="Pushpa 2", description="The Rule begins", rating=8.5, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", genre="Action")
+            MovieModel(title="Interstellar", description="Space exploration", rating=8.7, image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", genre="Sci-Fi", language="English", category="Latest"),
+            MovieModel(title="The Dark Knight", description="Batman vs Joker", rating=9.0, image="https://images.unsplash.com/photo-1478720568477-152d9b164e26", genre="Action", language="English", category="Popular"),
+            MovieModel(title="Pushpa 2", description="The Rule begins", rating=8.5, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", genre="Action", language="Hindi", category="Latest"),
+            MovieModel(title="Kalki 2898 AD", description="Mythology meets sci-fi", rating=8.2, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", genre="Sci-Fi", language="Hindi", category="Popular"),
+            MovieModel(title="La Casa de Papel", description="Money Heist", rating=8.6, image="https://images.unsplash.com/photo-1535016120720-40c646bebbcf", genre="Crime", language="Spanish", category="Latest")
         ]
         db.add_all(seed_data)
         db.commit()

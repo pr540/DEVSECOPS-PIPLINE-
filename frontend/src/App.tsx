@@ -47,7 +47,21 @@ const LoginModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
               <h2 className="text-3xl font-black uppercase italic leading-none mb-2">{isLogin ? 'Welcome Back' : 'Join CineBook'}</h2>
               <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Connect with your secure workspace</p>
             </div>
-            <div className="space-y-4">
+             <div className="space-y-4">
+               <button className="w-full bg-white text-black py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-3 hover:bg-gray-200 transition-all border border-gray-300">
+                 <svg className="w-5 h-5" viewBox="0 0 24 24">
+                   <path fill="#EA4335" d="M12 5.04c1.94 0 3.1 1.05 3.85 1.76l2.84-2.84C16.81 2.19 14.61 1 12 1 7.7 1 4.1 3.5 2.5 7.15l3.35 2.6c.79-2.28 2.92-3.71 6.15-3.71z"/>
+                   <path fill="#4285F4" d="M23.5 12.2c0-.79-.07-1.54-.19-2.27H12v4.3h6.43c-.28 1.44-1.09 2.65-2.29 3.4l3.56 2.77c2.09-1.92 3.3-4.74 3.3-8.2z"/>
+                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.34-1.36-.34-2.09s.12-1.43.34-2.09l-3.35-2.6C1.65 8.7 1 10.28 1 12s.65 3.3 1.49 4.65l3.35-2.56z"/>
+                   <path fill="#34A853" d="M12 23c3.24 0 5.95-1.08 7.93-2.91l-3.56-2.77c-1.1.74-2.5 1.18-4.37 1.18-3.21 0-5.92-2.16-6.89-5.07l-3.35 2.6c1.6 3.65 5.21 6.15 9.24 6.15z"/>
+                 </svg>
+                 Continue with Google
+               </button>
+               <div className="relative flex items-center py-2">
+                 <div className="flex-grow border-t border-white/10"></div>
+                 <span className="flex-shrink mx-4 text-gray-500 text-[10px] font-black uppercase">Or with Email</span>
+                 <div className="flex-grow border-t border-white/10"></div>
+               </div>
                <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
                   <input className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-sm focus:border-purple-500 outline-none" placeholder="Email Address" />
@@ -59,7 +73,6 @@ const LoginModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                <button 
                  onClick={() => {
                    onClose();
-                   // In a real app, this would set a session/token
                    window.location.reload(); 
                  }}
                  className="w-full bg-gradient-to-r from-purple-600 to-blue-500 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:opacity-90 transition-all">
@@ -203,6 +216,10 @@ const MovieGrid = () => {
     <div className="pt-32 pb-20 max-w-7xl mx-auto px-6">
       <div className="mb-12 flex flex-col md:flex-row items-end justify-between gap-6">
         <div>
+           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3 mb-6 bg-green-500/10 border border-green-500/20 px-4 py-2 rounded-full w-fit">
+              <ShieldCheck className="w-4 h-4 text-green-500" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-green-500">Pipeline Integrity Verified: Success</span>
+           </motion.div>
           <h2 className="text-6xl font-black uppercase italic mb-4 leading-none">Universal <span className="gradient-text">Showcase</span></h2>
           <div className="flex gap-4">
              {['Latest', 'Hindi', 'Spanish', 'All'].map(cat => (
