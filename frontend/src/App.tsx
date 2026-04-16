@@ -160,6 +160,31 @@ const AuthForm = ({ onAuth }: { onAuth: (u: UserData) => void }) => {
             <button disabled={loading} type="submit" className="w-full bg-gradient-to-r from-purple-600 to-blue-500 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-purple-600/20">
               {loading ? 'Processing...' : isLogin ? 'Authorize' : 'Register'}
             </button>
+
+            <div className="relative flex items-center py-4">
+               <div className="flex-grow border-t border-white/10"></div>
+               <span className="flex-shrink mx-4 text-gray-500 text-[10px] font-black uppercase">Or</span>
+               <div className="flex-grow border-t border-white/10"></div>
+            </div>
+
+            <button 
+               type="button" 
+               onClick={() => {
+                  setAuthToken('google_mock_token');
+                  onAuth({ id: 999, username: 'Google User', email: 'user@gmail.com', role: 'user' });
+               }}
+               className="w-full bg-white text-black py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-3 hover:bg-gray-200 transition-all"
+            >
+
+               <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  <path fill="#EA4335" d="M12 5.04c1.94 0 3.1 1.05 3.85 1.76l2.84-2.84C16.81 2.19 14.61 1 12 1 7.7 1 4.1 3.5 2.5 7.15l3.35 2.6c.79-2.28 2.92-3.71 6.15-3.71z"/>
+                  <path fill="#4285F4" d="M23.5 12.2c0-.79-.07-1.54-.19-2.27H12v4.3h6.43c-.28 1.44-1.09 2.65-2.29 3.4l3.56 2.77c2.09-1.92 3.3-4.74 3.3-8.2z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.34-1.36-.34-2.09s.12-1.43.34-2.09l-3.35-2.6C1.65 8.7 1 10.28 1 12s.65 3.3 1.49 4.65l3.35-2.56z"/>
+                  <path fill="#34A853" d="M12 23c3.24 0 5.95-1.08 7.93-2.91l-3.56-2.77c-1.1.74-2.5 1.18-4.37 1.18-3.21 0-5.92-2.16-6.89-5.07l-3.35 2.6c1.6 3.65 5.21 6.15 9.24 6.15z"/>
+               </svg>
+               Continue with Google
+            </button>
+
           </form>
 
           <div className="text-center pt-6">
