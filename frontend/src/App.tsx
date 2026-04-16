@@ -6,8 +6,9 @@ import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import { 
   Film, Star, X, MessageCircle, User, 
-  Zap, LogOut, Play, Search,
+  Zap, LogOut, Play, Search, Heart,
   ChevronRight, ChevronLeft, Info, Settings,
+
   BarChart, Upload, Users, Monitor
 } from 'lucide-react';
 
@@ -148,12 +149,9 @@ const MovieRow = ({ title, movies, onSelect }: { title: string, movies: Movie[],
        </div>
     </div>
   );
-};
-
-const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
+};const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
+  const [movies, setMovies] = useState<Movie[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [moviesByCat, setMoviesByCat] = useState<Record<number, Movie[]>>({});
-  const [featured, setFeatured] = useState<Movie | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -161,15 +159,7 @@ const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
       setCategories(catRes.data);
       
       const movieRes = await axios.get(`${API_BASE}/movies`);
-      const movies = movieRes.data;
-      setFeatured(movies[0]);
-      
-      const grouped: Record<number, Movie[]> = {};
-      movies.forEach((m: Movie) => {
-        if (!grouped[m.category_id]) grouped[m.category_id] = [];
-        grouped[m.category_id].push(m);
-      });
-      setMoviesByCat(grouped);
+      setMovies(movieRes.data);
     }
     load();
   }, []);
@@ -177,21 +167,18 @@ const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
   return (
     <div className="min-h-screen bg-[#050505]">
        {/* Hero Section */}
-       {featured && (
+       {movies.length > 0 && (
          <div className="relative h-[80vh] w-full overflow-hidden">
-            <img src={featured.image} className="w-full h-full object-cover opacity-40" alt="" />
+            <img src={movies[0].image} className="w-full h-full object-cover opacity-40" alt="" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent" />
             <div className="absolute inset-y-0 left-0 w-1/2 flex flex-col justify-center px-20">
                <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }}>
-                  <span className="bg-purple-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest mb-6 inline-block">Popular Choice</span>
-                  <h1 className="text-7xl font-black uppercase italic leading-none mb-6">{featured.title}</h1>
-                  <p className="text-lg text-gray-400 font-medium max-w-xl mb-10 leading-relaxed">{featured.description}</p>
+                  <span className="bg-purple-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest mb-6 inline-block">Featured Highlight</span>
+                  <h1 className="text-7xl font-black uppercase italic leading-none mb-6">{movies[0].title}</h1>
+                  <p className="text-lg text-gray-400 font-medium max-w-xl mb-10 leading-relaxed">{movies[0].description}</p>
                   <div className="flex gap-4">
-                     <button onClick={() => onSelect(featured)} className="bg-white text-black px-10 py-4 rounded-xl font-black uppercase flex items-center gap-3 hover:bg-purple-600 hover:text-white transition-all shadow-2xl">
-                        <Play className="w-5 h-5 fill-current" /> Play Now
-                     </button>
-                     <button className="bg-white/10 backdrop-blur-xl text-white px-10 py-4 rounded-xl font-black uppercase flex items-center gap-3 border border-white/5 hover:bg-white/20">
-                        <Info className="w-5 h-5" /> More Intel
+                     <button onClick={() => onSelect(movies[0])} className="bg-white text-black px-10 py-4 rounded-xl font-black uppercase flex items-center gap-3 hover:bg-purple-600 hover:text-white transition-all shadow-2xl">
+                        <Play className="w-5 h-5 fill-current" /> Initialize Stream
                      </button>
                   </div>
                </motion.div>
@@ -199,15 +186,14 @@ const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
          </div>
        )}
 
-       {/* Rows */}
+       {/* Gallery */}
        <div className="-mt-32 relative z-20">
-          <MovieRow title="All Movies Library" movies={Object.values(moviesByCat).flat()} onSelect={onSelect} />
+          <MovieRow title="All Movies Library" movies={movies} onSelect={onSelect} />
           {categories.map(cat => (
-
             <MovieRow 
               key={cat.id} 
-              title={cat.name} 
-              movies={moviesByCat[cat.id] || []} 
+              title={`${cat.name} Collection`} 
+              movies={movies.filter(m => m.category_id === cat.id)} 
               onSelect={onSelect}
             />
           ))}
@@ -237,7 +223,7 @@ const ExplorePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
   return (
     <div className="pt-32 px-10 min-h-screen">
        <div className="flex items-center justify-between mb-12">
-          <h1 className="text-4xl font-black uppercase italic">Explore <span className="text-purple-600">Database</span></h1>
+          <h1 className="text-4xl font-black uppercase italic">Latest <span className="text-purple-600">Releases</span></h1>
           <div className="flex gap-4">
              <div className="relative w-80">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
@@ -282,6 +268,41 @@ const ExplorePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
             </motion.div>
           ))}
        </div>
+    </div>
+  );
+};
+
+const WatchlistPage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
+  const [movies, setMovies] = useState<Movie[]>([]);
+
+  useEffect(() => {
+    async function load() {
+      const res = await axios.get(`${API_BASE}/favorites`);
+      setMovies(res.data);
+    }
+    load();
+  }, []);
+
+  return (
+    <div className="pt-32 px-10 min-h-screen">
+       <div className="flex items-center justify-between mb-12">
+          <h1 className="text-4xl font-black uppercase italic">Saved <span className="text-purple-600">Protocols</span></h1>
+       </div>
+       {movies.length > 0 ? (
+         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-6">
+            {movies.map(movie => (
+               <div key={movie.id} onClick={() => onSelect(movie)} className="glass-card p-2 border-white/5 bg-white/5 hover:bg-white/10 transition-all cursor-pointer">
+                  <img src={movie.image} className="aspect-[2/3] rounded-xl object-cover mb-2" alt="" />
+                  <h3 className="text-[10px] font-black uppercase truncate">{movie.title}</h3>
+               </div>
+            ))}
+         </div>
+       ) : (
+         <div className="py-40 text-center">
+            <Heart className="w-16 h-16 text-gray-800 mx-auto mb-6" />
+            <p className="text-xs font-black uppercase text-gray-600">No telemetry saved in watchlist</p>
+         </div>
+       )}
     </div>
   );
 };
@@ -496,7 +517,7 @@ export default function App() {
                   <div className="flex items-center gap-8">
                      <div className="flex items-center gap-4 px-4 py-2 bg-white/5 rounded-full border border-white/10 group cursor-pointer hover:bg-white/10 transition-colors">
                         <User className="w-4 h-4 text-purple-600" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">{user.username}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest">{user.username || user.email}</span>
                         <Settings className="w-4 h-4 text-gray-600 group-hover:rotate-90 transition-transform" />
                      </div>
                      <button onClick={() => { setAuthToken(null); setUser(null); }} className="p-2 text-gray-500 hover:text-red-500 transition-colors">
@@ -508,9 +529,11 @@ export default function App() {
                <Routes>
                   <Route path="/" element={<HomePage onSelect={handleStartStream} />} />
                   <Route path="/explore" element={<ExplorePage onSelect={handleStartStream} />} />
+                  <Route path="/watchlist" element={<WatchlistPage onSelect={handleStartStream} />} />
                   <Route path="/admin" element={user.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" />} />
                   <Route path="*" element={<Navigate to="/" />} />
                </Routes>
+
 
                {/* Video Modal */}
                <AnimatePresence>
