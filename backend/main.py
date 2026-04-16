@@ -37,6 +37,7 @@ class MovieSchema(BaseModel):
     genre: str
     language: Optional[str] = "English"
     category: Optional[str] = "Latest"
+    quality: Optional[str] = "1080p Full HD"
 
     class Config:
         from_attributes = True
@@ -76,11 +77,21 @@ def get_movies(db: Session = Depends(get_db)):
     movies = db.query(MovieModel).all()
     if not movies:
         seed_data = [
-            MovieModel(title="Interstellar", description="Space exploration", rating=8.7, image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", genre="Sci-Fi", language="English", category="Latest"),
-            MovieModel(title="The Dark Knight", description="Batman vs Joker", rating=9.0, image="https://images.unsplash.com/photo-1478720568477-152d9b164e26", genre="Action", language="English", category="Popular"),
-            MovieModel(title="Pushpa 2", description="The Rule begins", rating=8.5, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", genre="Action", language="Hindi", category="Latest"),
-            MovieModel(title="Kalki 2898 AD", description="Mythology meets sci-fi", rating=8.2, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", genre="Sci-Fi", language="Hindi", category="Popular"),
-            MovieModel(title="La Casa de Papel", description="Money Heist", rating=8.6, image="https://images.unsplash.com/photo-1535016120720-40c646bebbcf", genre="Crime", language="Spanish", category="Latest")
+            # Latest Releases
+            MovieModel(title="Interstellar", description="Space exploration epic", rating=8.7, image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", genre="Sci-Fi", language="English", category="Latest", quality="4K Ultra HD"),
+            MovieModel(title="Pushpa 2", description="The Rule begins", rating=8.5, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", genre="Action", language="Hindi", category="Latest", quality="1080p Full HD"),
+            
+            # Present / Recent
+            MovieModel(title="Kalki 2898 AD", description="Mythology meets sci-fi", rating=8.2, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", genre="Sci-Fi", language="Hindi", category="Present", quality="1080p Full HD"),
+            MovieModel(title="Dune: Part Two", description="The journey continues", rating=8.9, image="https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", genre="Sci-Fi", language="English", category="Present", quality="4K Ultra HD"),
+            
+            # Old / Classics
+            MovieModel(title="The Dark Knight", description="Batman vs Joker", rating=9.0, image="https://images.unsplash.com/photo-1478720568477-152d9b164e26", genre="Action", language="English", category="Classic", quality="1080p Full HD"),
+            MovieModel(title="The Godfather", description="Crime family saga", rating=9.2, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", genre="Crime", language="English", category="Classic", quality="720p BluRay"),
+            MovieModel(title="Sholay", description="Indian action classic", rating=8.8, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", genre="Action", language="Hindi", category="Classic", quality="1080p Full HD"),
+            
+            # International
+            MovieModel(title="La Casa de Papel", description="Money Heist", rating=8.6, image="https://images.unsplash.com/photo-1535016120720-40c646bebbcf", genre="Crime", language="Spanish", category="Latest", quality="1080p Full HD")
         ]
         db.add_all(seed_data)
         db.commit()

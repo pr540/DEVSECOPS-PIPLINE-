@@ -24,6 +24,7 @@ interface Movie {
   genre: string;
   language?: string;
   category?: string;
+  quality?: string;
 }
 
 interface AuditLog {
@@ -201,7 +202,7 @@ const MovieGrid = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [category, setCategory] = useState('Latest');
   const [isModalOpen, setModalOpen] = useState(false);
-  const [bookingStatus, setBookingStatus] = useState<string | null>(null);
+  const [streamingStatus, setStreamingStatus] = useState<string | null>(null);
 
   const fetchMovies = async () => {
     try {
@@ -213,11 +214,11 @@ const MovieGrid = () => {
   };
   useEffect(() => { fetchMovies(); }, []);
 
-  const handleBook = (title: string) => {
-    setBookingStatus(`Processing booking for ${title}...`);
+  const handleStream = (title: string, quality: string) => {
+    setStreamingStatus(`Initializing ${quality} stream for ${title}...`);
     setTimeout(() => {
-      setBookingStatus(`Successfully booked ${title}! Your ticket is secured.`);
-      setTimeout(() => setBookingStatus(null), 3000);
+      setStreamingStatus(`Now playing ${title} in Full HD. Enjoy!`);
+      setTimeout(() => setStreamingStatus(null), 3000);
     }, 1500);
   };
 
@@ -228,9 +229,9 @@ const MovieGrid = () => {
 
   return (
     <div className="pt-32 pb-20 max-w-7xl mx-auto px-6">
-      {bookingStatus && (
+      {streamingStatus && (
         <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] bg-green-500 text-white px-8 py-4 rounded-2xl font-black uppercase text-xs shadow-2xl shadow-green-500/40">
-           {bookingStatus}
+           {streamingStatus}
         </motion.div>
       )}
       <div className="mb-12 flex flex-col md:flex-row items-end justify-between gap-6">
@@ -239,9 +240,9 @@ const MovieGrid = () => {
               <ShieldCheck className="w-4 h-4 text-green-500" />
               <span className="text-[10px] font-black uppercase tracking-widest text-green-500">Pipeline Integrity Verified: Success</span>
            </motion.div>
-          <h2 className="text-6xl font-black uppercase italic mb-4 leading-none">Universal <span className="gradient-text">Showcase</span></h2>
+          <h2 className="text-6xl font-black uppercase italic mb-4 leading-none">Global <span className="gradient-text">Stream</span></h2>
           <div className="flex gap-4">
-             {['Latest', 'Hindi', 'Spanish', 'All'].map(cat => (
+             {['Latest', 'Present', 'Classic', 'All'].map(cat => (
                <button key={cat} onClick={() => setCategory(cat)} className={`text-[10px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-full border transition-all ${category === cat ? 'bg-white text-black border-white' : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/30'}`}>
                  {cat}
                </button>
@@ -262,16 +263,26 @@ const MovieGrid = () => {
                    {movie.language}
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent flex flex-col justify-end p-6">
+                   <div className="mb-2">
+                     <span className="text-[8px] font-black uppercase bg-purple-600 px-2 py-0.5 rounded">{movie.quality || '1080p HD'}</span>
+                   </div>
                    <h3 className="text-xl font-black uppercase italic mb-1 truncate">{movie.title}</h3>
                    <div className="flex items-center gap-2 mb-4">
                       <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
                       <span className="text-xs font-black">{movie.rating}</span>
                    </div>
-                   <button 
-                    onClick={() => handleBook(movie.title)}
-                    className="w-full bg-white/10 hover:bg-white text-white hover:text-black py-3 rounded-xl border border-white/20 text-xs font-black uppercase transition-all backdrop-blur-md">
-                      Book Now
-                   </button>
+                   <div className="grid grid-cols-2 gap-2">
+                     <button 
+                      onClick={() => handleStream(movie.title, movie.quality || '1080p')}
+                      className="bg-white/10 hover:bg-white text-white hover:text-black py-3 rounded-xl border border-white/20 text-[9px] font-black uppercase transition-all backdrop-blur-md">
+                        Watch HD
+                     </button>
+                     <button 
+                      onClick={() => alert(`Starting 1080p download for ${movie.title}...`)}
+                      className="bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white py-3 rounded-xl border border-purple-500/30 text-[9px] font-black uppercase transition-all backdrop-blur-md">
+                        Download
+                     </button>
+                   </div>
                 </div>
              </div>
           </motion.div>
@@ -501,8 +512,8 @@ function App() {
         <div className="w-20 h-20 bg-purple-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-purple-600/40 mx-auto mb-8">
           <Film className="w-10 h-10" />
         </div>
-        <h1 className="text-7xl font-black italic tracking-tighter mb-4">CINE<span className="text-purple-600">BOOK</span></h1>
-        <p className="text-gray-500 font-bold uppercase tracking-[0.3em] text-xs">The Most Secure Movie Platform on the Blockchain</p>
+        <h1 className="text-7xl font-black italic tracking-tighter mb-4">CINE<span className="text-purple-600">STREAM</span></h1>
+        <p className="text-gray-500 font-bold uppercase tracking-[0.3em] text-xs">High-Quality 1080p Movies & Classics</p>
       </motion.div>
       <div className="glass-card p-10 w-full max-w-md border-white/5 bg-white/5 backdrop-blur-3xl">
          <h2 className="text-2xl font-black uppercase italic mb-8 text-center">Identity Verification</h2>
@@ -540,7 +551,7 @@ function App() {
                    <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-600/20">
                       <Film className="w-5 h-5" />
                    </div>
-                   <span className="text-2xl font-black tracking-tighter italic">CINE<span className="text-purple-600">BOOK</span></span>
+                   <span className="text-2xl font-black tracking-tighter italic">CINE<span className="text-purple-600">STREAM</span></span>
                 </Link>
                 <div className="hidden md:flex items-center gap-8 text-[11px] font-black uppercase tracking-widest text-gray-500">
                    <Link to="/" className="hover:text-white transition-colors">Movies</Link>
