@@ -29,6 +29,8 @@ class MovieModel(Base):
     language = Column(String, default="English")
     category = Column(String, default="Latest")
     quality = Column(String, default="1080p Full HD")
+    video_url = Column(String, nullable=True)
+    download_url = Column(String, nullable=True)
 
 # Create tables
 Base.metadata.create_all(bind=engine)

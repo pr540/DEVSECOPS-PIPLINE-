@@ -25,6 +25,8 @@ interface Movie {
   language?: string;
   category?: string;
   quality?: string;
+  video_url?: string;
+  download_url?: string;
 }
 
 interface AuditLog {
@@ -142,6 +144,32 @@ const Chatbot = () => {
   );
 };
 
+const VideoModal = ({ movie, isOpen, onClose }: { movie: Movie | null, isOpen: boolean, onClose: () => void }) => {
+  if (!movie) return null;
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-4">
+          <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 30 }} className="w-full max-w-5xl aspect-video bg-black rounded-3xl overflow-hidden relative shadow-2xl border border-white/5">
+            <button onClick={onClose} className="absolute top-6 right-6 z-10 p-3 bg-black/50 hover:bg-white/10 rounded-full transition-all text-white"><X /></button>
+            <iframe 
+              src={`${movie.video_url}?autoplay=1`} 
+              title={movie.title}
+              className="w-full h-full border-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+            />
+            <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black to-transparent">
+              <h2 className="text-3xl font-black uppercase italic text-white">{movie.title}</h2>
+              <p className="text-xs text-purple-400 font-bold uppercase tracking-[0.2em]">{movie.quality}</p>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
 const AddMovieModal = ({ isOpen, onClose, onAdd }: { isOpen: boolean, onClose: () => void, onAdd: () => void }) => {
   const [formData, setFormData] = useState({
     title: '', description: '', rating: 8.5, genre: 'Action', language: 'English', category: 'Latest', 
@@ -203,6 +231,7 @@ const MovieGrid = () => {
   const [category, setCategory] = useState('Latest');
   const [isModalOpen, setModalOpen] = useState(false);
   const [streamingStatus, setStreamingStatus] = useState<string | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<Movie | null>(null);
 
   const fetchMovies = async () => {
     try {
@@ -214,12 +243,20 @@ const MovieGrid = () => {
   };
   useEffect(() => { fetchMovies(); }, []);
 
-  const handleStream = (title: string, quality: string) => {
-    setStreamingStatus(`Initializing ${quality} stream for ${title}...`);
+  const handleStream = (movie: Movie) => {
+    setStreamingStatus(`Preparing secure pipeline for ${movie.title}...`);
     setTimeout(() => {
-      setStreamingStatus(`Now playing ${title} in Full HD. Enjoy!`);
-      setTimeout(() => setStreamingStatus(null), 3000);
+      setSelectedVideo(movie);
+      setStreamingStatus(null);
     }, 1500);
+  };
+
+  const handleDownload = (movie: Movie) => {
+    setStreamingStatus(`Generating secure download link...`);
+    setTimeout(() => {
+      setStreamingStatus(`Link Generated: ${movie.download_url}`);
+      setTimeout(() => setStreamingStatus(null), 6000);
+    }, 1000);
   };
 
   const filteredMovies = useMemo(() => {
@@ -279,12 +316,12 @@ const MovieGrid = () => {
                    </div>
                    <div className="grid grid-cols-2 gap-2 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
                      <button 
-                      onClick={() => handleStream(movie.title, movie.quality || '1080p')}
+                      onClick={() => handleStream(movie)}
                       className="bg-white text-black py-3 rounded-xl text-[9px] font-black uppercase hover:bg-purple-600 hover:text-white transition-all">
-                        Stream
+                        Stream Now
                      </button>
                      <button 
-                      onClick={() => alert(`Starting secure download for ${movie.title} (1080p)...`)}
+                      onClick={() => handleDownload(movie)}
                       className="bg-white/5 hover:bg-white/10 text-white py-3 rounded-xl border border-white/10 text-[9px] font-black uppercase transition-all backdrop-blur-md">
                         Get Link
                      </button>
@@ -303,6 +340,7 @@ const MovieGrid = () => {
         )}
       </div>
       <AddMovieModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} onAdd={fetchMovies} />
+      <VideoModal movie={selectedVideo} isOpen={!!selectedVideo} onClose={() => setSelectedVideo(null)} />
     </div>
   );
 };
