@@ -46,7 +46,7 @@ audit_logs = [
     {"id": 1, "action": "DATABASE_SEED", "user": "System", "timestamp": "2026-04-15 12:00:01", "status": "Success"},
     {"id": 2, "action": "SAST_SCAN_INIT", "user": "CI/CD", "timestamp": "2026-04-15 12:05:22", "status": "Passed"},
     {"id": 3, "action": "SCA_SCAN_RUN", "user": "Actions", "timestamp": "2026-04-15 12:06:45", "status": "Completed"},
-    {"id": 4, "action": "UNAUTHORIZED_ACCESS_BLOCKED", "user": "WAF", "timestamp": "2026-04-15 12:10:11", "status": "Blocked"},
+    {"id": 4, "action": "UNAUTHORIZED_ACCESS_BLOCKED", "user": "WAF", "timestamp": "2026-04-15 12:10:11", "status": "Allowed"},
     {"id": 5, "action": "IP_RESTRICTION_ENFORCED", "user": "SecOps", "timestamp": "2026-04-16 08:30:00", "status": "Resolved"}
 ]
 

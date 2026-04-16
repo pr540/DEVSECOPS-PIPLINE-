@@ -7,7 +7,8 @@ import {
 } from 'recharts';
 import { 
   Film, Star, MapPin, Activity, ShieldCheck, 
-  Plus, X, Cpu, MessageCircle, Send, User, Key
+  Plus, X, Cpu, MessageCircle, Send, User, Key,
+  Shield, Settings, Lock, CreditCard
 } from 'lucide-react';
 
 // --- CONSTANTS ---
@@ -200,12 +201,25 @@ const MovieGrid = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [category, setCategory] = useState('Latest');
   const [isModalOpen, setModalOpen] = useState(false);
+  const [bookingStatus, setBookingStatus] = useState<string | null>(null);
 
   const fetchMovies = async () => {
-    const res = await axios.get(`${API_BASE}/movies`);
-    setMovies(res.data);
+    try {
+      const res = await axios.get(`${API_BASE}/movies`);
+      setMovies(res.data);
+    } catch (err) {
+      console.error("Failed to fetch movies", err);
+    }
   };
   useEffect(() => { fetchMovies(); }, []);
+
+  const handleBook = (title: string) => {
+    setBookingStatus(`Processing booking for ${title}...`);
+    setTimeout(() => {
+      setBookingStatus(`Successfully booked ${title}! Your ticket is secured.`);
+      setTimeout(() => setBookingStatus(null), 3000);
+    }, 1500);
+  };
 
   const filteredMovies = useMemo(() => {
     if (category === 'All') return movies;
@@ -214,6 +228,11 @@ const MovieGrid = () => {
 
   return (
     <div className="pt-32 pb-20 max-w-7xl mx-auto px-6">
+      {bookingStatus && (
+        <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] bg-green-500 text-white px-8 py-4 rounded-2xl font-black uppercase text-xs shadow-2xl shadow-green-500/40">
+           {bookingStatus}
+        </motion.div>
+      )}
       <div className="mb-12 flex flex-col md:flex-row items-end justify-between gap-6">
         <div>
            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3 mb-6 bg-green-500/10 border border-green-500/20 px-4 py-2 rounded-full w-fit">
@@ -248,7 +267,9 @@ const MovieGrid = () => {
                       <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
                       <span className="text-xs font-black">{movie.rating}</span>
                    </div>
-                   <button className="w-full bg-white/10 hover:bg-white text-white hover:text-black py-3 rounded-xl border border-white/20 text-xs font-black uppercase transition-all backdrop-blur-md">
+                   <button 
+                    onClick={() => handleBook(movie.title)}
+                    className="w-full bg-white/10 hover:bg-white text-white hover:text-black py-3 rounded-xl border border-white/20 text-xs font-black uppercase transition-all backdrop-blur-md">
                       Book Now
                    </button>
                 </div>
@@ -343,6 +364,7 @@ const MonitoringPage = () => {
                        <div className={`w-2 h-2 rounded-full ${
                           log.status === 'Alert' ? 'bg-red-500' : 
                           log.status === 'Blocked' ? 'bg-yellow-500' :
+                          log.status === 'Allowed' ? 'bg-blue-500' :
                           'bg-green-500'
                         }`} />
                        <div>
@@ -355,6 +377,87 @@ const MonitoringPage = () => {
                ))}
             </div>
          </div>
+      </div>
+    </div>
+  );
+};
+
+const ProfilePage = () => {
+  const [activeTab, setActiveTab] = useState('Security');
+  const [user] = useState({ name: 'Admin User', email: 'admin@cinebook.io', role: 'Security Architect' });
+
+  return (
+    <div className="pt-32 pb-20 max-w-7xl mx-auto px-6">
+      <div className="flex flex-col lg:flex-row gap-12">
+        <aside className="lg:w-1/4 space-y-8">
+          <div className="glass-card p-8 border-white/5 text-center">
+            <div className="w-24 h-24 bg-gradient-to-br from-purple-600 to-blue-600 rounded-3xl mx-auto mb-6 flex items-center justify-center">
+              <User className="w-12 h-12 text-white" />
+            </div>
+            <h3 className="text-xl font-black uppercase italic">{user.name}</h3>
+            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-2">{user.role}</p>
+          </div>
+
+          <nav className="space-y-2">
+            {[
+              { id: 'Overview', icon: User },
+              { id: 'Security', icon: Shield },
+              { id: 'Settings', icon: Settings },
+              { id: 'Subscription', icon: CreditCard }
+            ].map(tab => (
+              <button 
+                key={tab.id} 
+                onClick={() => setActiveTab(tab.id)}
+                className={`w-full flex items-center gap-4 px-6 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab.id ? 'bg-white text-black' : 'text-gray-500 hover:bg-white/5'}`}
+              >
+                <tab.icon className="w-4 h-4" />
+                {tab.id}
+              </button>
+            ))}
+          </nav>
+        </aside>
+
+        <main className="lg:w-3/4">
+          <AnimatePresence mode="wait">
+            {activeTab === 'Security' && (
+              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
+                <div className="glass-card p-10 border-white/5">
+                  <h2 className="text-3xl font-black uppercase italic mb-8">Security <span className="text-purple-500">Settings</span></h2>
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between p-6 bg-white/5 rounded-2xl border border-white/5">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-green-500/10 rounded-xl"><Lock className="w-5 h-5 text-green-500" /></div>
+                        <div>
+                          <p className="text-xs font-black uppercase">Two-Factor Authentication</p>
+                          <p className="text-[10px] text-gray-500 font-bold uppercase mt-1">Status: Enabled</p>
+                        </div>
+                      </div>
+                      <button className="text-[10px] font-black uppercase text-purple-500 hover:text-white transition-colors">Manage</button>
+                    </div>
+
+                    <div className="flex items-center justify-between p-6 bg-white/5 rounded-2xl border border-white/5">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-blue-500/10 rounded-xl"><Shield className="w-5 h-5 text-blue-500" /></div>
+                        <div>
+                          <p className="text-xs font-black uppercase">WAF Permissions</p>
+                          <p className="text-[10px] text-gray-500 font-bold uppercase mt-1">Allowed Access: Verified</p>
+                        </div>
+                      </div>
+                      <span className="text-[9px] font-black uppercase bg-blue-500 text-white px-3 py-1 rounded-full">Active</span>
+                    </div>
+                  </div>
+                </div>
+                <SecurityPage />
+              </motion.div>
+            )}
+
+            {activeTab !== 'Security' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card p-20 border-white/5 text-center">
+                <p className="text-xs font-black text-gray-500 uppercase tracking-widest italic">Section {activeTab} is currently being hardened.</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </main>
       </div>
     </div>
   );
@@ -443,6 +546,7 @@ function App() {
                    <Link to="/" className="hover:text-white transition-colors">Movies</Link>
                    <Link to="/monitoring" className="hover:text-white transition-colors">Monitoring</Link>
                    <Link to="/security" className="hover:text-white transition-colors">Security</Link>
+                   <Link to="/profile" className="hover:text-white transition-colors">Profile</Link>
                 </div>
                 <div className="flex items-center gap-4">
                    <div className="hidden sm:flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/10 text-[9px] font-black uppercase tracking-widest text-gray-400">
@@ -460,6 +564,7 @@ function App() {
           <Route path="/" element={isAuthenticated ? <MovieGrid /> : <LandingPage />} />
           <Route path="/monitoring" element={isAuthenticated ? <MonitoringPage /> : <LandingPage />} />
           <Route path="/security" element={isAuthenticated ? <SecurityPage /> : <LandingPage />} />
+          <Route path="/profile" element={isAuthenticated ? <ProfilePage /> : <LandingPage />} />
         </Routes>
 
         <Chatbot />
