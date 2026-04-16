@@ -392,6 +392,30 @@ const AuthPage = ({ onAuth }: { onAuth: (u: UserData) => void }) => {
                 <input required type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm outline-none focus:border-purple-500" placeholder="Secret Key" />
                 <button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-blue-500 py-4 rounded-2xl font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-purple-600/30">Continue</button>
              </form>
+
+             <div className="relative flex items-center py-6">
+                <div className="flex-grow border-t border-white/5"></div>
+                <span className="flex-shrink mx-4 text-gray-500 text-[10px] font-black uppercase tracking-widest">Or</span>
+                <div className="flex-grow border-t border-white/5"></div>
+             </div>
+
+             <button 
+                type="button" 
+                onClick={() => {
+                   setAuthToken('google_mock_token');
+                   onAuth({ id: 999, username: 'Google User', email: 'user@gmail.com', role: 'user' });
+                }}
+                className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-3 hover:bg-gray-200 transition-all shadow-xl"
+             >
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                   <path fill="#EA4335" d="M12 5.04c1.94 0 3.1 1.05 3.85 1.76l2.84-2.84C16.81 2.19 14.61 1 12 1 7.7 1 4.1 3.5 2.5 7.15l3.35 2.6c.79-2.28 2.92-3.71 6.15-3.71z"/>
+                   <path fill="#4285F4" d="M23.5 12.2c0-.79-.07-1.54-.19-2.27H12v4.3h6.43c-.28 1.44-1.09 2.65-2.29 3.4l3.56 2.77c2.09-1.92 3.3-4.74 3.3-8.2z"/>
+                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.34-1.36-.34-2.09s.12-1.43.34-2.09l-3.35-2.6C1.65 8.7 1 10.28 1 12s.65 3.3 1.49 4.65l3.35-2.56z"/>
+                   <path fill="#34A853" d="M12 23c3.24 0 5.95-1.08 7.93-2.91l-3.56-2.77c-1.1.74-2.5 1.18-4.37 1.18-3.21 0-5.92-2.16-6.89-5.07l-3.35 2.6c1.6 3.65 5.21 6.15 9.24 6.15z"/>
+                </svg>
+                Identity with Google
+             </button>
+
              
              <button onClick={() => setIsLogin(!isLogin)} className="mt-8 text-[10px] font-black uppercase text-gray-500 hover:text-purple-400 transition-colors">
                 {isLogin ? "Generate new profile" : "Return to authentication"}
