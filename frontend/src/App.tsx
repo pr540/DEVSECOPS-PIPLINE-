@@ -1,12 +1,12 @@
 import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate, useParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import { 
-  Film, Star, X, MessageCircle, Send, User, Key,
-  Zap, Heart, LogOut, Play, Search, Filter,
+  Film, Star, X, MessageCircle, User, 
+  Zap, LogOut, Play, Search,
   ChevronRight, ChevronLeft, Info, Settings,
   BarChart, Upload, Users, Monitor
 } from 'lucide-react';
