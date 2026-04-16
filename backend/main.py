@@ -20,13 +20,27 @@ from .auth_utils import (
 from .storage import generate_presigned_url
 
 limiter = Limiter(key_func=get_remote_address)
+from starlette.middleware.base import BaseHTTPMiddleware
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src * data:; media-src * blob:; connect-src *;"
+        return response
+
 app = FastAPI(
     title="CineStream API Pro",
     version="2.0.0",
     docs_url="/api/docs",
     openapi_url="/api/openapi.json"
 )
+app.add_middleware(SecurityHeadersMiddleware)
 app.state.limiter = limiter
+
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
@@ -137,20 +151,32 @@ def get_movies(
     
     movies = query.all()
     
-    # Pre-seed if empty (even if collection is 'All')
+    # Auto-seed if empty for better user experience
     if not movies and (not collection or collection == "All"):
-        seed = [
-            Movie(title="Deadpool & Wolverine", description="MCU chaos.", rating=9.0, image="https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", genre="Action", collection="2000-2026", year=2024, quality="1080p Full HD", video_url="movies/deadpool.m3u8", download_url="https://archive.org/details/deadpool_movie"),
-            Movie(title="Pulp Fiction", description="Tarantino classic.", rating=8.9, image="https://images.unsplash.com/photo-1535016120720-40c646bebbcf", genre="Crime", collection="90s", year=1994, quality="1080p Remastered", video_url="movies/pulpfiction.m3u8", download_url="https://archive.org/details/pulp_fiction_1994"),
-            Movie(title="Pushpa 2", description="The Rule.", rating=9.5, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", genre="Action", collection="2000-2026", year=2025, quality="1080p Ultra HD", video_url="movies/pushpa2.m3u8", download_url="https://archive.org/details/pushpa_2")
-        ]
-
-
-        db.add_all(seed)
-        db.commit()
+        force_seed(db)
         movies = db.query(Movie).all()
         
     return movies
+
+@api_router.get("/seed")
+
+def force_seed(db: Session = Depends(get_db)):
+    db.query(Movie).delete()
+    seed = [
+        # 2000-2026
+        Movie(title="Pushpa 2: The Rule (2025)", description="The clash continues in this high-octane sequel.", rating=9.8, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", genre="Action", collection="2000-2026", year=2025, quality="1080p Ultra HD", video_url="movies/pushpa2.m3u8", download_url="https://archive.org/details/pushpa_2"),
+        Movie(title="Deadpool & Wolverine (2024)", description="A chaotic duo joins the MCU.", rating=9.2, image="https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", genre="Action", collection="2000-2026", year=2024, quality="1080p Full HD", video_url="movies/deadpool.m3u8", download_url="https://archive.org/details/deadpool_movie"),
+        Movie(title="Kalki 2898 AD (2024)", description="Modern avatar of Vishnu.", rating=8.9, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", genre="Sci-Fi", collection="2000-2026", year=2024, quality="1080p IMAX", video_url="movies/kalki.m3u8", download_url="https://archive.org/details/kalki_2898"),
+        
+        # 90s
+        Movie(title="Pulp Fiction (1994)", description="Tarantino masterpiece.", rating=9.1, image="https://images.unsplash.com/photo-1535016120720-40c646bebbcf", genre="Crime", collection="90s", year=1994, quality="1080p 4K Scan", video_url="movies/pulpfiction.m3u8", download_url="https://archive.org/details/pulp_fiction_1994"),
+        Movie(title="Shiva (1989/90)", description="Student stands up against corruption.", rating=8.7, image="https://images.unsplash.com/photo-1535016120720-40c646bebbcf", genre="Action", collection="90s", year=1990, quality="1080p Remastered", video_url="movies/shiva_90s.m3u8", download_url="https://archive.org/details/shiva_telugu"),
+        Movie(title="Jurassic Park (1993)", description="Dinosaurs roam again.", rating=8.5, image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", genre="Sci-Fi", collection="90s", year=1993, quality="1080p BluRay", video_url="movies/jp_93.m3u8", download_url="https://archive.org/details/jurassic_park_1993")
+    ]
+    db.add_all(seed)
+    db.commit()
+    return {"message": "Database seeded with 1080p HD Movies", "count": len(seed)}
+
 
 @api_router.get("/movies/{movie_id}/stream")
 def get_movie_stream(movie_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
