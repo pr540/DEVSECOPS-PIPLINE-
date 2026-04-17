@@ -107,33 +107,47 @@ const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
     axios.get(`${API_BASE}/movies`).then(res => { setMovies(res.data); setLoading(false); }).catch(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="py-40 text-center text-purple-600 animate-pulse font-black uppercase text-xs">Initializing Neural Link...</div>;
+  if (loading) return <div className="py-40 text-center text-purple-600 animate-pulse font-black uppercase text-xs tracking-[1em]">Establishing Neural Link...</div>;
+
+  const trending = movies.filter(m => m.rating >= 9.0);
+  const latest = movies.filter(m => m.year >= 2024);
+  const global = movies.filter(m => m.language !== 'English');
 
   return (
     <div className="min-h-screen bg-[#050505]">
        {movies.length > 0 && (
-         <div className="relative h-[80vh] w-full overflow-hidden">
-            <img src={movies[0].image} className="w-full h-full object-cover opacity-30" alt="" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent" />
-            <div className="absolute inset-y-0 left-0 w-1/2 flex flex-col justify-center px-20">
-               <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }}>
-                  <span className="bg-purple-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest mb-6 inline-block">Direct Global Access</span>
-                  <h1 className="text-7xl font-black uppercase italic leading-none mb-6">{movies[0].title}</h1>
-                  <p className="text-lg text-gray-400 font-medium max-w-xl mb-10 leading-relaxed">{movies[0].description}</p>
-                  <button onClick={() => onSelect(movies[0])} className="bg-white text-black px-10 py-4 rounded-xl font-black uppercase flex items-center gap-3 hover:bg-purple-600 hover:text-white transition-all shadow-2xl">
-                     <Play className="w-5 h-5 fill-current" /> Watch Shards (1080p)
-                  </button>
+         <div className="relative h-[85vh] w-full overflow-hidden">
+            <img src={trending[0]?.image || movies[0].image} className="w-full h-full object-cover opacity-40 scale-105" alt="" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]/60" />
+            <div className="absolute inset-y-0 left-0 w-full md:w-2/3 flex flex-col justify-center px-10 md:px-20">
+               <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+                  <span className="bg-purple-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-8 inline-flex items-center gap-2 shadow-lg shadow-purple-600/30">
+                    <Star className="w-3 h-3 fill-current" /> Trending Synchronization
+                  </span>
+                  <h1 className="text-6xl md:text-8xl font-black uppercase italic leading-none mb-6 drop-shadow-2xl">{(trending[0]?.title || movies[0].title).replace(/ \(\d+\)/, '')}</h1>
+                  <p className="text-lg md:text-xl text-gray-300 font-medium max-w-2xl mb-12 leading-relaxed opacity-80">{trending[0]?.description || movies[0].description}</p>
+                  <div className="flex flex-wrap gap-6">
+                    <button onClick={() => onSelect(trending[0] || movies[0])} className="bg-white text-black px-12 py-5 rounded-2xl font-black uppercase flex items-center gap-4 hover:bg-purple-600 hover:text-white transition-all transform hover:scale-105 shadow-2xl">
+                       <Play className="w-6 h-6 fill-current" /> Stream in 1080p
+                    </button>
+                    <div className="flex items-center gap-4 px-8 py-5 border border-white/10 rounded-2xl backdrop-blur-xl bg-white/5">
+                        <Monitor className="w-5 h-5 text-purple-500" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Direct Download Active</span>
+                    </div>
+                  </div>
                </motion.div>
             </div>
          </div>
        )}
-       <div className="-mt-32 relative z-20">
-          <MovieRow title="Primary Visual Archive" movies={movies} onSelect={onSelect} />
-          <MovieRow title="Global Language Cores" movies={movies.slice().reverse()} onSelect={onSelect} />
+       <div className="-mt-48 relative z-20 space-y-20 pb-20">
+          <MovieRow title="Trending Syncs" movies={trending.length > 0 ? trending : movies} onSelect={onSelect} />
+          <MovieRow title="Latest Released Nodes" movies={latest.length > 0 ? latest : movies.slice(0, 5)} onSelect={onSelect} />
+          <MovieRow title="Global Multilingual Cores" movies={global.length > 0 ? global : movies.slice().reverse()} onSelect={onSelect} />
        </div>
     </div>
   );
 };
+
 
 const ExplorePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -151,35 +165,51 @@ const ExplorePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
   useEffect(() => { load(); }, [filters, search]);
 
   return (
-    <div className="pt-32 px-10 min-h-screen">
-       <div className="flex items-center justify-between mb-12">
-          <h1 className="text-4xl font-black uppercase italic">Latest <span className="text-purple-600">Syncs</span></h1>
-          <div className="flex gap-4">
-             <div className="relative w-80">
+    <div className="pt-40 px-6 md:px-20 min-h-screen pb-20">
+       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
+          <div>
+            <h1 className="text-5xl font-black uppercase italic tracking-tighter mb-2">Neural <span className="text-purple-600">Archive</span></h1>
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em]">Full HD 1080p Visual Repository</p>
+          </div>
+          <div className="flex flex-wrap gap-4">
+             <div className="relative w-full md:w-80">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-                <input value={search} onChange={e => setSearch(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-sm focus:border-purple-500 outline-none" placeholder="Search Neural Archive..." />
+                <input value={search} onChange={e => setSearch(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-sm focus:border-purple-500 outline-none backdrop-blur-xl transition-all" placeholder="Search Neural Archive..." />
              </div>
-             <select onChange={e => setFilters({...filters, language: e.target.value})} className="bg-white/5 border border-white/10 rounded-xl px-6 py-3 text-[10px] font-black uppercase outline-none">
-                <option value="">Languages</option>
-                {['Telugu', 'Hindi', 'English', 'Tamil', 'Malayalam', 'Kannada'].map(l => <option key={l} value={l}>{l}</option>)}
+             <select onChange={e => setFilters({...filters, language: e.target.value})} className="bg-white/5 border border-white/10 rounded-2xl px-8 py-4 text-[10px] font-black uppercase outline-none focus:border-purple-500 cursor-pointer">
+                <option value="" className="bg-black">All Languages</option>
+                {['Telugu', 'Hindi', 'English', 'Tamil', 'Malayalam', 'Kannada'].map(l => <option key={l} value={l} className="bg-black">{l}</option>)}
              </select>
-             <select onChange={e => setFilters({...filters, year: e.target.value})} className="bg-white/5 border border-white/10 rounded-xl px-6 py-3 text-[10px] font-black uppercase outline-none">
-                <option value="">Year range</option>
-                {Array.from({ length: 2026 - 1900 }, (_, i) => 2026 - i).map(y => <option key={y} value={y.toString()}>{y}</option>)}
+             <select onChange={e => setFilters({...filters, year: e.target.value})} className="bg-white/5 border border-white/10 rounded-2xl px-8 py-4 text-[10px] font-black uppercase outline-none focus:border-purple-500 cursor-pointer">
+                <option value="" className="bg-black">All Years</option>
+                {Array.from({ length: 2026 - 1900 }, (_, i) => 2026 - i).map(y => <option key={y} value={y.toString()} className="bg-black">{y}</option>)}
              </select>
           </div>
        </div>
-       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-6">
+       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8">
           {movies.map(m => (
-            <motion.div layout key={m.id} onClick={() => onSelect(m)} className="glass-card p-2 border-white/5 bg-white/5 hover:bg-white/10 transition-all cursor-pointer">
-               <img src={m.image} className="aspect-[2/3] rounded-xl object-cover mb-2" alt="" />
-               <h3 className="text-[10px] font-black uppercase truncate">{m.title}</h3>
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} layout key={m.id} onClick={() => onSelect(m)} className="group relative glass-card p-3 border-white/5 bg-white/5 hover:bg-white/10 transition-all cursor-pointer rounded-2xl overflow-hidden hover:scale-105">
+               <div className="aspect-[2/3] rounded-xl overflow-hidden mb-4 relative">
+                  <img src={m.image} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="" />
+                  <div className="absolute top-2 right-2 bg-purple-600 px-2 py-1 rounded text-[8px] font-black uppercase tracking-tighter shadow-lg">1080p</div>
+               </div>
+               <h3 className="text-xs font-black uppercase tracking-wide truncate group-hover:text-purple-400 transition-colors">{m.title}</h3>
+               <div className="flex justify-between items-center mt-2 opacity-60">
+                  <span className="text-[8px] font-bold uppercase">{m.language}</span>
+                  <span className="text-[8px] font-bold uppercase">{m.year}</span>
+               </div>
             </motion.div>
           ))}
        </div>
+       {movies.length === 0 && (
+         <div className="text-center py-40">
+           <p className="text-gray-500 font-black uppercase tracking-widest animate-pulse">No Neural Fragments Found</p>
+         </div>
+       )}
     </div>
   );
 };
+
 
 const ProfilePage = ({ user }: { user: UserData }) => {
   return (
@@ -258,15 +288,15 @@ export default function App() {
        <div className="bg-[#050505] text-white selection:bg-purple-600 selection:text-white font-sans min-h-screen">
           {!user ? <Routes><Route path="*" element={<AuthPage onAuth={setUser} />} /></Routes> : (
             <>
-               <nav className="fixed top-0 inset-x-0 z-[100] bg-black/40 backdrop-blur-3xl border-b border-white/5 px-20 py-6 flex items-center justify-between">
-                  <Link to="/" className="text-3xl font-black italic">CINE<span className="text-purple-600">STREAM</span></Link>
-                  <div className="flex items-center gap-12">
-                     <Link to="/" className="text-[10px] font-black uppercase tracking-widest hover:text-purple-400">Home</Link>
-                     <Link to="/explore" className="text-[10px] font-black uppercase tracking-widest hover:text-purple-400">Latest Releases</Link>
-                     <Link to="/profile" className="flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-all">
-                        <User className="w-4 h-4 text-purple-600" /><span className="text-[10px] font-black uppercase tracking-widest">{user.username}</span>
+               <nav className="fixed top-0 inset-x-0 z-[100] bg-black/40 backdrop-blur-3xl border-b border-white/5 px-10 md:px-20 py-6 flex items-center justify-between">
+                  <Link to="/" className="text-3xl font-black italic tracking-tighter">CINE<span className="text-purple-600">STREAM</span><span className="text-[10px] align-top bg-purple-600/20 text-purple-400 px-2 py-0.5 rounded ml-1 not-italic">PRO</span></Link>
+                  <div className="hidden md:flex items-center gap-10">
+                     <Link to="/" className="text-[10px] font-black uppercase tracking-[0.2em] hover:text-purple-400 transition-colors">Home</Link>
+                     <Link to="/explore" className="text-[10px] font-black uppercase tracking-[0.2em] hover:text-purple-400 transition-colors underline-offset-8 hover:underline decoration-purple-600 decoration-2">Movies</Link>
+                     <Link to="/profile" className="flex items-center gap-3 px-6 py-2.5 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-all group">
+                        <User className="w-4 h-4 text-purple-600 group-hover:scale-110 transition-transform" /><span className="text-[10px] font-black uppercase tracking-widest">{user.username}</span>
                      </Link>
-                     <button onClick={() => { setAuthToken(null); setUser(null); }}><LogOut className="w-5 h-5 text-gray-500 hover:text-red-500" /></button>
+                     <button onClick={() => { setAuthToken(null); setUser(null); }} className="p-2 hover:bg-white/5 rounded-xl transition-colors"><LogOut className="w-5 h-5 text-gray-500 hover:text-red-500 transition-colors" /></button>
                   </div>
                </nav>
                <Routes>
@@ -277,15 +307,30 @@ export default function App() {
                </Routes>
                <AnimatePresence>
                   {playerMovie && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-black flex items-center justify-center p-20 backdrop-blur-3xl">
-                       <div className="w-full max-w-6xl relative aspect-video">
-                          <button onClick={() => setPlayerMovie(null)} className="absolute -top-16 right-0 p-4 hover:bg-red-500 rounded-2xl"><X /></button>
-                          {streamUrl ? <VideoPlayer src={streamUrl} /> : <div className="animate-pulse text-purple-600 font-black uppercase">Decrypting Fragment...</div>}
-                          <div className="mt-8">
-                             <h2 className="text-4xl font-black uppercase italic leading-none">{playerMovie.title}</h2>
-                             <div className="flex gap-4 mt-4">
-                                <span className="px-3 py-1 bg-white/5 rounded text-[8px] font-black uppercase tracking-widest border border-white/10">1080p Ultra HD</span>
-                                {playerMovie.download_url && <a href={playerMovie.download_url} target="_blank" className="px-3 py-1 bg-purple-600 rounded text-[8px] font-black uppercase tracking-widest">Download Node</a>}
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-black flex items-center justify-center p-6 md:p-20 backdrop-blur-3xl">
+                       <div className="w-full max-w-6xl relative">
+                          <button onClick={() => setPlayerMovie(null)} className="absolute -top-16 right-0 p-4 bg-white/5 hover:bg-red-500 rounded-2xl transition-all border border-white/10 group"><X className="group-hover:rotate-90 transition-transform" /></button>
+                          <div className="aspect-video rounded-[2rem] overflow-hidden shadow-[0_0_100px_rgba(147,51,234,0.3)] border border-white/10 bg-black">
+                             {streamUrl ? <VideoPlayer src={streamUrl} /> : <div className="h-full flex flex-col items-center justify-center gap-4 text-purple-600 font-black uppercase tracking-[1em] animate-pulse">
+                               <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
+                               Decrypting Stream...
+                             </div>}
+                          </div>
+                          <div className="mt-10 flex flex-col md:flex-row md:items-end justify-between gap-8">
+                             <div>
+                               <h2 className="text-5xl md:text-6xl font-black uppercase italic leading-none mb-4">{playerMovie.title}</h2>
+                               <div className="flex flex-wrap gap-4 items-center">
+                                  <span className="px-4 py-1.5 bg-purple-600 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-purple-600/30">1080p Ultra HD</span>
+                                  <span className="px-4 py-1.5 bg-white/5 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/10 text-gray-400">{playerMovie.language} • {playerMovie.year}</span>
+                                  <div className="flex items-center gap-2 ml-2"><Star className="w-4 h-4 text-yellow-500 fill-yellow-500" /><span className="text-lg font-black">{playerMovie.rating}</span></div>
+                               </div>
+                             </div>
+                             <div className="flex gap-4">
+                               {playerMovie.download_url && (
+                                 <a href={playerMovie.download_url} target="_blank" className="px-10 py-5 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-purple-600 hover:text-white transition-all transform hover:-translate-y-1 shadow-2xl flex items-center gap-3">
+                                   <Monitor className="w-4 h-4" /> Download 1080p Node
+                                 </a>
+                               )}
                              </div>
                           </div>
                        </div>

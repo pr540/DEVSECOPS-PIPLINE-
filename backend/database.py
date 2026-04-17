@@ -8,10 +8,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Use PostgreSQL if env var is set, otherwise fallback for local dev
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/cinestream")
+# Use SQLite by default for local dev, PostgreSQL for production
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./cinebook.db")
 
 from sqlalchemy import create_engine
-engine = create_engine(DATABASE_URL)
+engine = create_engine(
+    DATABASE_URL, 
+    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

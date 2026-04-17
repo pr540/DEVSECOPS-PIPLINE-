@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', 'Outfit', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: dark;
   color: #fff;
-  background-color: #111;
+  background-color: #050505;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -18,23 +18,45 @@
 body {
   margin: 0;
   display: block;
-  background: #111;
-  color: #ccc;
+  background: #050505;
+  color: #eee;
+  overflow-x: hidden;
 }
 
 .glass-card {
-  background: #1c1c1c;
-  border: 1px solid #333;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.neon-border {
-  border: 1px solid #f97316;
-  box-shadow: 0 0 15px rgba(249, 115, 22, 0.15);
+.vjs-netflix-skin {
+  border-radius: 1.5rem;
 }
 
-.gradient-text {
-  background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+.vjs-netflix-skin .vjs-big-play-button {
+  background-color: #9333ea !important;
+  border: none !important;
+  border-radius: 50% !important;
+  width: 3em !important;
+  height: 3em !important;
+  line-height: 3em !important;
 }
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #222;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9333ea;
+}
+

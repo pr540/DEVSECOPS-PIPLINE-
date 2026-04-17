@@ -197,20 +197,31 @@ def admin_upload(
 
 def _seed(db: Session):
     if db.query(Category).count() == 0:
-        cats = [Category(name="Action"), Category(name="Special Collection"), Category(name="Global Hits")]
+        cats = [
+            Category(name="Trending Now"), 
+            Category(name="Latest Releases"), 
+            Category(name="Global Language Cores"),
+            Category(name="Premium Archive")
+        ]
         db.add_all(cats)
         db.commit()
     
-    cat = db.query(Category).first()
+    trending_cat = db.query(Category).filter(Category.name == "Trending Now").first()
+    latest_cat = db.query(Category).filter(Category.name == "Latest Releases").first()
+    global_cat = db.query(Category).filter(Category.name == "Global Language Cores").first()
+
     if db.query(Movie).count() == 0:
         movies = [
-            Movie(title="Gladiator II (2024)", description="The legacy of Rome continues.", rating=8.8, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", language="English", quality="1080p Ultra HD", video_url="movies/gladiator.m3u8", download_url="https://archive.org/details/gladiator_ii", year=2024, category_id=cat.id),
-            Movie(title="Vishwambhara", description="Socio-fantasy epic.", rating=9.6, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", language="Telugu", quality="1080p IMAX", video_url="movies/vishwambhara.m3u8", download_url="https://archive.org/details/vishwambhara_telugu", year=2025, category_id=cat.id),
-            Movie(title="The Jazz Singer (1927)", description="Historic movie milestone.", rating=7.9, image="https://images.unsplash.com/photo-1542204172-3c1f837066ad", language="English", quality="1080p Remastered", video_url="movies/jazz.m3u8", download_url="https://archive.org/details/the_jazz_singer", year=1927, category_id=cat.id),
-            Movie(title="Devara: Part 1", description="Fear the sea.", rating=8.5, image="https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", language="Telugu", quality="1080p HD", video_url="movies/devara.m3u8", year=2024, category_id=cat.id),
-            Movie(title="Dangal", description="Inspiring wrestling saga.", rating=9.1, image="https://images.unsplash.com/photo-1535016120720-40c646bebbcf", language="Hindi", quality="1080p Full HD", video_url="movies/dangal.m3u8", year=2016, category_id=cat.id),
-            Movie(title="Lucifer", description="God of underworld.", rating=8.7, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", language="Malayalam", quality="1080p", video_url="movies/lucifer.m3u8", year=2019, category_id=cat.id),
-            Movie(title="Kantis", description="Action thriller.", rating=8.1, image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", language="Kannada", quality="1080p", video_url="movies/kantis.m3u8", year=2026, category_id=cat.id)
+            Movie(title="Gladiator II (2024)", description="The legacy of Rome continues.", rating=8.8, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", language="English", quality="1080p Ultra HD", video_url="movies/gladiator.m3u8", download_url="https://archive.org/details/gladiator_ii", year=2024, category_id=trending_cat.id),
+            Movie(title="Vishwambhara", description="Socio-fantasy epic.", rating=9.6, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", language="Telugu", quality="1080p 10-Bit", video_url="movies/vishwambhara.m3u8", download_url="https://archive.org/details/vishwambhara_telugu", year=2025, category_id=latest_cat.id),
+            Movie(title="Devara: Part 1", description="Fear the sea.", rating=8.5, image="https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", language="Telugu", quality="1080p Full HD", video_url="movies/devara.m3u8", year=2024, category_id=trending_cat.id),
+            Movie(title="The Jazz Singer", description="Historic movie milestone.", rating=7.9, image="https://images.unsplash.com/photo-1542204172-3c1f837066ad", language="English", quality="1080p Remastered", video_url="movies/jazz.m3u8", download_url="https://archive.org/details/the_jazz_singer", year=1927, category_id=global_cat.id),
+            Movie(title="Dangal", description="Inspiring wrestling saga.", rating=9.1, image="https://images.unsplash.com/photo-1535016120720-40c646bebbcf", language="Hindi", quality="1080p BluRay", video_url="movies/dangal.m3u8", year=2016, category_id=global_cat.id),
+            Movie(title="Lucifer", description="God of underworld.", rating=8.7, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", language="Malayalam", quality="1080p HD", video_url="movies/lucifer.m3u8", year=2019, category_id=global_cat.id),
+            Movie(title="Kantis", description="Action thriller.", rating=8.1, image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", language="Kannada", quality="1080p UHD", video_url="movies/kantis.m3u8", year=2026, category_id=latest_cat.id),
+            Movie(title="Pushpa 2: The Rule", description="The rise of Pushpa Raj.", rating=9.4, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", language="Telugu", quality="1080p HDR", video_url="movies/pushpa2.m3u8", year=2024, category_id=trending_cat.id),
+            Movie(title="Kalki 2898 AD", description="Mythology meets sci-fi.", rating=9.2, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", language="Telugu", quality="1080p IMAX", video_url="movies/kalki.m3u8", year=2024, category_id=latest_cat.id),
+            Movie(title="Jawan", description="A man driven by a personal vendetta.", rating=8.9, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", language="Hindi", quality="1080p Full HD", video_url="movies/jawan.m3u8", year=2023, category_id=trending_cat.id),
         ]
         db.add_all(movies)
         db.commit()
