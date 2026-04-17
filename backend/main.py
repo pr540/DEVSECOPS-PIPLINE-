@@ -44,10 +44,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize DB on startup
+# One-time DB check flag
+_db_initialized = False
+
+def ensure_db():
+    global _db_initialized
+    if not _db_initialized:
+        print("Neural Archive Initialization Sequence Started...")
+        init_db()
+        _db_initialized = True
+
 @app.on_event("startup")
 def startup():
-    init_db()
+    ensure_db()
+
+@app.middleware("http")
+async def db_check_middleware(request: Request, call_next):
+    ensure_db()
+    return await call_next(request)
 
 # --- Pydantic Schemas ---
 class CategoryBase(BaseModel):

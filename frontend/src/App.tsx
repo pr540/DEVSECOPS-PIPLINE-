@@ -13,7 +13,9 @@ import {
 } from 'lucide-react';
 
 // --- CONSTANTS ---
-const API_BASE = import.meta.env.PROD ? '/api' : 'http://localhost:8000/api';
+const API_BASE = import.meta.env.PROD 
+  ? `${window.location.origin}/api` 
+  : 'http://localhost:8000/api';
 
 // --- TYPES ---
 interface Movie {
@@ -128,11 +130,15 @@ const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
   };
 
   useEffect(() => {
-    axios.get(`${API_BASE}/movies`).then(res => { 
+    const config = { timeout: 10000 };
+    axios.get(`${API_BASE}/movies`, config).then(res => { 
        setMovies(res.data); 
        setLoading(false);
        if (res.data.length === 0) triggerSeed();
-    }).catch(() => setLoading(false));
+    }).catch((err) => {
+       console.error("Neural Link Error:", err);
+       setLoading(false);
+    });
   }, []);
 
   if (loading) return <div className="py-40 text-center text-purple-600 animate-pulse font-black uppercase text-xs tracking-[1em]">Establishing Neural Link...</div>;
