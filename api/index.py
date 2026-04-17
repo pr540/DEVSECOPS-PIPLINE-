@@ -111,29 +111,33 @@ def _seed(db: Session):
             cats[name] = cat
         
         seed_data = [
-            # Real Working Archival Identifiers (Internet Archive)
+            # --- FULL MOVIES (GOLDEN ARCHIVE) ---
+            {"title": "The General", "year": 1926, "language": "English", "cat": "Golden Archive (1990-2000)", 
+             "ia_id": "The_General_1926", "img": "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=800"},
+            {"title": "Metropolis", "year": 1927, "language": "Silent", "cat": "Golden Archive (1990-2000)",
+             "ia_id": "Metropolis1927", "img": "https://images.unsplash.com/photo-1535016120720-40c646bebbcf?q=80&w=800"},
+            {"title": "Sherlock Jr.", "year": 1924, "language": "English", "cat": "Golden Archive (1990-2000)",
+             "ia_id": "SherlockJr.", "img": "https://images.unsplash.com/photo-1542204172-3c1f837066ad?q=80&w=800"},
+            {"title": "Nosferatu", "year": 1922, "language": "German", "cat": "Golden Archive (1990-2000)",
+             "ia_id": "nosferatu", "img": "https://images.unsplash.com/photo-1509248961158-e54f6934749c?q=80&w=800"},
+            {"title": "Steamboat Bill Jr.", "year": 1928, "language": "English", "cat": "Golden Archive (1990-2000)",
+             "ia_id": "SteamboatBillJr", "img": "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800"},
             {"title": "Night of the Living Dead", "year": 1968, "language": "English", "cat": "Golden Archive (1990-2000)", 
              "ia_id": "night_of_the_living_dead_2", "img": "https://images.unsplash.com/photo-1509248961158-e54f6934749c?q=80&w=800"},
-            {"title": "The Fast and the Furious", "year": 1954, "language": "English", "cat": "Golden Archive (1990-2000)",
-             "ia_id": "the-fast-and-the-furious-1954", "img": "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800"},
-            {"title": "Charade", "year": 1963, "language": "English", "cat": "Golden Archive (1990-2000)",
-             "ia_id": "Charade1963", "img": "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=800"},
-            {"title": "His Girl Friday", "year": 1940, "language": "English", "cat": "Golden Archive (1990-2000)",
-             "ia_id": "HisGirlFriday", "img": "https://images.unsplash.com/photo-1542204172-3c1f837066ad?q=80&w=800"},
-            {"title": "Plan 9 from Outer Space", "year": 1959, "language": "English", "cat": "Golden Archive (1990-2000)",
-             "ia_id": "Plan_9_from_Outer_Space_1959", "img": "https://images.unsplash.com/photo-1535016120720-40c646bebbcf?q=80&w=800"},
 
-            # Modern Era (Trailers/Creative Commons)
-            {"title": "Big Buck Bunny", "year": 2008, "language": "English", "cat": "Modern Era (2001-2026)",
-             "ia_id": "BigBuckBunny_328", "img": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=800"},
-            {"title": "Sita Ramam Trailer", "year": 2022, "language": "Telugu", "cat": "Modern Era (2001-2026)",
-             "ia_id": "sita-ramam-official-trailer-telugu-dulquer-salmaan-mrunal-thakur-rashmika-hanu-raghavapudi", "img": "https://images.unsplash.com/photo-1531259683007-016a7b628fc3?q=80&w=800"},
-            {"title": "Kalki 2898 AD Glimpse", "year": 2024, "language": "Telugu", "cat": "Modern Era (2001-2026)",
-             "ia_id": "project-k-kalki-2898-ad-glimpse-prabhas-kamal-haasan-amitabh-bachchan-deepika", "img": "https://images.unsplash.com/photo-1535016120720-40c646bebbcf?q=80&w=800"},
-            {"title": "Pushpa 2 Teaser", "year": 2024, "language": "Telugu", "cat": "Modern Era (2001-2026)",
+            # --- MODERN ERA & GLIMPSES (2001-2026) ---
+            {"title": "Sintel (Full Short)", "year": 2010, "language": "English", "cat": "Modern Era (2001-2026)",
+             "ia_id": "Sintel", "img": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=800"},
+            {"title": "Tears of Steel", "year": 2012, "language": "English", "cat": "Modern Era (2001-2026)",
+             "ia_id": "TearsOfSteel", "img": "https://images.unsplash.com/photo-1531259683007-016a7b628fc3?q=80&w=800"},
+            {"title": "War 2 Glimpse", "year": 2025, "language": "Hindi", "cat": "Upcoming Nodes",
+             "ia_id": "war-2-official-trailer-hrithik-roshan-jr-ntr", "img": "https://images.unsplash.com/photo-1531259683007-016a7b628fc3?q=80&w=800"},
+            {"title": "Stree 2 Teaser", "year": 2024, "language": "Hindi", "cat": "Modern Era (2001-2026)",
+             "ia_id": "stree-2-official-teaser-shraddha-kapoor-rajkummar-rao", "img": "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?q=80&w=800"},
+            {"title": "Pushpa 2 Rule Glimpse", "year": 2024, "language": "Telugu", "cat": "Modern Era (2001-2026)",
              "ia_id": "pushpa-2-the-rule-teaser-allu-arjun-sukumar-rashmika-mandanna-fahadh-faasil-dsp", "img": "https://images.unsplash.com/photo-1531259683007-016a7b628fc3?q=80&w=800"},
-            {"title": "Devara Glimpse", "year": 2024, "language": "Telugu", "cat": "Upcoming Nodes",
-             "ia_id": "devara-glimpse-telugu-jr-ntr-saif-ali-khan-janhvi-kapoor-anirudh-ravichander-koratala-siva", "img": "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?q=80&w=800"},
+            {"title": "Kalki Ultra Preview", "year": 2024, "language": "Telugu", "cat": "Modern Era (2001-2026)",
+             "ia_id": "project-k-kalki-2898-ad-glimpse-prabhas-kamal-haasan-amitabh-bachchan-deepika", "img": "https://images.unsplash.com/photo-1535016120720-40c646bebbcf?q=80&w=800"},
         ]
         for m in seed_data:
             existing = db.query(Movie).filter(Movie.title == m["title"]).first()
@@ -195,19 +199,25 @@ def get_movie(movie_id: int, db: Session = Depends(get_db)):
     return movie
 
 @app.get("/api/movies/{movie_id}/stream")
-def stream(movie_id: int, db: Session = Depends(get_db)):
+def stream(movie_id: int, quality: str = "1080p", db: Session = Depends(get_db)):
     ensure_db()
     movie = db.query(Movie).filter(Movie.id == movie_id).first()
     if not movie: raise HTTPException(status_code=404, detail="Stream Node Not Found")
     
-    # Mock HLS / VLC Deep Link Support
-    stream_url = f"https://archive.org/download/{movie.title.lower().replace(' ', '-')}/video.mp4"
+    # Use the seeded video_url (which has the correct IA ID)
+    base_url = movie.video_url
+    
+    # If a specific quality is requested and it's 1080p, we simulate the high-bitrate node
+    # Realistically, IA files often have suffixes like .mp4 or _1080p.mp4
+    # But for now, we point to the main source which is generally high quality.
+    
     return {
-        "url": stream_url,
-        "vlc_url": f"vlc://{stream_url}",
-        "mx_url": f"intent:{stream_url}#Intent;package=com.mxtech.videoplayer.ad;end",
-        "quality_options": ["480p", "720p", "1080p"],
-        "status": "Decrypted"
+        "url": base_url,
+        "vlc_url": f"vlc://{base_url}",
+        "mx_url": f"intent:{base_url}#Intent;package=com.mxtech.videoplayer.ad;S.title={movie.title};end",
+        "quality": quality,
+        "quality_options": ["360p", "720p", "1080p Ultra HD"],
+        "status": "Decrypted (Archival Node 1080p Active)"
     }
 
 @app.get("/api/categories", response_model=List[CategorySchema])

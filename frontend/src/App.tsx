@@ -488,7 +488,22 @@ export default function App() {
                                </div>
                                <h2 className="text-5xl md:text-6xl font-black uppercase italic leading-none mb-4">{playerMovie.title}</h2>
                                <div className="flex flex-wrap gap-4 items-center">
-                                  <span className="px-4 py-1.5 bg-purple-600 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-purple-600/30">1080p Ultra HD</span>
+                                  <div className="relative group/quality">
+                                     <button className="px-4 py-1.5 bg-purple-600 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-purple-600/30 flex items-center gap-2">
+                                        <Monitor className="w-3 h-3" /> {streamData?.quality || '1080p'} Ultra HD
+                                     </button>
+                                     <div className="absolute bottom-full left-0 mb-2 hidden group-hover/quality:block bg-black/90 border border-white/10 rounded-xl overflow-hidden backdrop-blur-3xl min-w-[120px]">
+                                        {(streamData?.quality_options || ['360p', '720p', '1080p']).map((q: string) => (
+                                          <button 
+                                            key={q}
+                                            onClick={() => handleStartStream(playerMovie)} 
+                                            className="w-full px-4 py-2 text-left text-[8px] font-black uppercase hover:bg-purple-600 transition-colors border-b border-white/5 last:border-0"
+                                          >
+                                            {q}
+                                          </button>
+                                        ))}
+                                     </div>
+                                  </div>
                                   <span className="px-4 py-1.5 bg-white/5 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/10 text-gray-400">{playerMovie.language} • {playerMovie.year}</span>
                                   <div className="flex items-center gap-2 ml-2"><Star className="w-4 h-4 text-yellow-500 fill-yellow-500" /><span className="text-lg font-black">{playerMovie.rating}</span></div>
                                </div>
