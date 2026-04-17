@@ -77,53 +77,67 @@ def get_db():
         db.close()
 
 def _seed(db):
-    # Precise Era Sync
-    cat_names = ["Golden Archive (1990-2000)", "Modern Era (2001-2026)", "Upcoming Nodes"]
-    cats = {}
-    for name in cat_names:
-        cat = db.query(Category).filter(Category.name == name).first()
-        if not cat:
-            cat = Category(name=name)
-            db.add(cat)
-            db.commit()
-            db.refresh(cat)
-        cats[name] = cat
-    
-    seed_data = [
-        {"title": "Jurassic Park", "year": 1993, "language": "English", "cat": "Golden Archive (1990-2000)"},
-        {"title": "Titanic", "year": 1997, "language": "English", "cat": "Golden Archive (1990-2000)"},
-        {"title": "DDLJ", "year": 1995, "language": "Hindi", "cat": "Golden Archive (1990-2000)"},
-        {"title": "Baashha", "year": 1995, "language": "Tamil", "cat": "Golden Archive (1990-2000)"},
-        {"title": "Shiva", "year": 1989, "language": "Telugu", "cat": "Golden Archive (1990-2000)"},
-        {"title": "Vishwambhara", "year": 2025, "language": "Telugu", "cat": "Modern Era (2001-2026)"},
-        {"title": "Pushpa 2", "year": 2024, "language": "Telugu", "cat": "Modern Era (2001-2026)"},
-        {"title": "Kalki 2898 AD", "year": 2024, "language": "Telugu", "cat": "Modern Era (2001-2026)"},
-        {"title": "Animal", "year": 2023, "language": "Hindi", "cat": "Modern Era (2001-2026)"},
-        {"title": "Dune 2", "year": 2024, "language": "English", "cat": "Modern Era (2001-2026)"},
-        {"title": "RRR", "year": 2022, "language": "Telugu", "cat": "Modern Era (2001-2026)"},
-        {"title": "Devara Part 2", "year": 2026, "language": "Telugu", "cat": "Upcoming Nodes"},
-        {"title": "Spirit", "year": 2025, "language": "Telugu", "cat": "Upcoming Nodes"},
-        {"title": "The Avatar Core", "year": 2026, "language": "English", "cat": "Upcoming Nodes"},
-    ]
+    try:
+        # Precise Era Sync
+        cat_names = ["Golden Archive (1990-2000)", "Modern Era (2001-2026)", "Upcoming Nodes"]
+        cats = {}
+        for name in cat_names:
+            cat = db.query(Category).filter(Category.name == name).first()
+            if not cat:
+                try:
+                    cat = Category(name=name)
+                    db.add(cat)
+                    db.commit()
+                    db.refresh(cat)
+                except Exception:
+                    db.rollback()
+                    cat = db.query(Category).filter(Category.name == name).first()
+            cats[name] = cat
+        
+        seed_data = [
+            {"title": "Jurassic Park", "year": 1993, "language": "English", "cat": "Golden Archive (1990-2000)"},
+            {"title": "Titanic", "year": 1997, "language": "English", "cat": "Golden Archive (1990-2000)"},
+            {"title": "DDLJ", "year": 1995, "language": "Hindi", "cat": "Golden Archive (1990-2000)"},
+            {"title": "Baashha", "year": 1995, "language": "Tamil", "cat": "Golden Archive (1990-2000)"},
+            {"title": "Shiva", "year": 1989, "language": "Telugu", "cat": "Golden Archive (1990-2000)"},
+            {"title": "Vishwambhara", "year": 2025, "language": "Telugu", "cat": "Modern Era (2001-2026)"},
+            {"title": "Pushpa 2", "year": 2024, "language": "Telugu", "cat": "Modern Era (2001-2026)"},
+            {"title": "Kalki 2898 AD", "year": 2024, "language": "Telugu", "cat": "Modern Era (2001-2026)"},
+            {"title": "Animal", "year": 2023, "language": "Hindi", "cat": "Modern Era (2001-2026)"},
+            {"title": "Dune 2", "year": 2024, "language": "English", "cat": "Modern Era (2001-2026)"},
+            {"title": "RRR", "year": 2022, "language": "Telugu", "cat": "Modern Era (2001-2026)"},
+            {"title": "Devara Part 2", "year": 2026, "language": "Telugu", "cat": "Upcoming Nodes"},
+            {"title": "Spirit", "year": 2025, "language": "Telugu", "cat": "Upcoming Nodes"},
+            {"title": "The Avatar Core", "year": 2026, "language": "English", "cat": "Upcoming Nodes"},
+        ]
 
-    for m in seed_data:
-        if not db.query(Movie).filter(Movie.title == m["title"]).first():
-            cat = cats.get(m["cat"])
-            if cat:
-                db.add(Movie(
-                    title=m["title"], description=f"Premium 1080p archival segment for {m['title']}.", rating=9.0,
-                    image=f"https://images.unsplash.com/photo-{1540000000000 + m['year']}", language=m["language"], quality="1080p",
-                    video_url=f"movies/{m['title'].lower().replace(' ', '_')}.m3u8",
-                    download_url=f"https://archive.org/details/{m['title'].lower().replace(' ', '_')}",
-                    year=m["year"], category_id=cat.id
-                ))
-    db.commit()
+        for m in seed_data:
+            if not db.query(Movie).filter(Movie.title == m["title"]).first():
+                cat = cats.get(m["cat"])
+                if cat:
+                    try:
+                        db.add(Movie(
+                            title=m["title"], description=f"Premium 1080p archival segment for {m['title']}.", rating=9.0,
+                            image=f"https://images.unsplash.com/photo-{1540000000000 + m['year']}", language=m["language"], quality="1080p",
+                            video_url=f"movies/{m['title'].lower().replace(' ', '_')}.m3u8",
+                            download_url=f"https://archive.org/details/{m['title'].lower().replace(' ', '_')}",
+                            year=m["year"], category_id=cat.id
+                        ))
+                        db.commit()
+                    except Exception:
+                        db.rollback()
+    except Exception as e:
+        print(f"Neural Seed Error: {e}")
+        db.rollback()
 
 # Create tables and auto-seed
 def init_db():
-    Base.metadata.create_all(bind=engine)
-    db = SessionLocal()
     try:
-        _seed(db)
-    finally:
-        db.close()
+        Base.metadata.create_all(bind=engine)
+        db = SessionLocal()
+        try:
+            _seed(db)
+        finally:
+            db.close()
+    except Exception as e:
+        print(f"DB Init Error: {e}")

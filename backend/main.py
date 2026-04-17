@@ -44,25 +44,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# One-time DB check flag
-_db_initialized = False
-
-def ensure_db():
-    global _db_initialized
-    if not _db_initialized:
-        print("Neural Archive Initialization Sequence Started...")
-        init_db()
-        _db_initialized = True
-
-@app.on_event("startup")
-def startup():
-    ensure_db()
-
-@app.middleware("http")
-async def db_check_middleware(request: Request, call_next):
-    ensure_db()
-    return await call_next(request)
-
 # --- Pydantic Schemas ---
 class CategoryBase(BaseModel):
     name: str
@@ -135,7 +116,27 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 def me(current_user: User = Depends(get_current_user)):
     return current_user
 
-# MOVIES & FILTERS
+# Initialize DB lazily to prevent cold start timeouts
+_db_ready = False
+
+def get_db_session():
+    global _db_ready
+    from .database import SessionLocal, init_db
+    if not _db_ready:
+        try:
+            init_db()
+            _db_ready = True
+        except Exception as e:
+            print(f"Lazy Init Error: {e}")
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# Use our high-res dependency for all endpoints
+DB = Depends(get_db_session)
+
 @api.get("/movies", response_model=List[MovieSchema])
 def list_movies(
     category_id: Optional[int] = None,
@@ -143,7 +144,7 @@ def list_movies(
     year_from: Optional[int] = None,
     year_to: Optional[int] = None,
     q: Optional[str] = None,
-    db: Session = Depends(get_db)
+    db: Session = DB
 ):
     query = db.query(Movie)
     if category_id: query = query.filter(Movie.category_id == category_id)
@@ -155,16 +156,14 @@ def list_movies(
         query = query.filter((Movie.title.ilike(search)) | (Movie.description.ilike(search)) | (Movie.language.ilike(search)))
     
     movies = query.all()
-    # Auto-seed ONLY if the ENTIRE database is empty, to avoid infinite loops on valid empty searches
-    if not movies and db.query(Movie).count() == 0 and not category_id:
-        _seed(db)
-        movies = db.query(Movie).all()
+    # Auto-seed fallback ONLY if database is empty and no filter is active
+    if not movies and not category_id and not q and db.query(Movie).count() == 0:
+        try:
+            from .database import _seed
+            _seed(db)
+            movies = db.query(Movie).all()
+        except: pass
     return movies
-
-@api.post("/movies/seed")
-def force_seed(db: Session = Depends(get_db)):
-    _seed(db)
-    return {"status": "Database synchronization triggered"}
 
 @api.get("/categories", response_model=List[CategorySchema])
 def list_categories(db: Session = Depends(get_db)):
