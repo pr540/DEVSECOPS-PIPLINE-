@@ -48,6 +48,12 @@ app.add_middleware(
 @app.on_event("startup")
 def startup():
     init_db()
+    from .database import SessionLocal
+    db = SessionLocal()
+    try:
+        _seed(db)
+    finally:
+        db.close()
 
 # --- Pydantic Schemas ---
 class CategoryBase(BaseModel):
@@ -225,33 +231,24 @@ def _seed(db: Session):
     latest_cat = db.query(Category).filter(Category.name == "Latest Releases").first()
     global_cat = db.query(Category).filter(Category.name == "Global Language Cores").first()
 
-    if db.query(Movie).count() <= 12:
+    if db.query(Movie).count() < 15:
         movies = [
             # Telugu (Primary Focus)
-            Movie(title="Vishwambhara", description="Socio-fantasy epic starring Megastar Chiranjeevi.", rating=9.6, image="https://images.unsplash.com/photo-1542204172-3c1f837066ad", language="Telugu", quality="1080p 10-Bit", video_url="movies/telugu1.m3u8", year=2025, category_id=latest_cat.id),
-            Movie(title="Devara: Part 1", description="NTR Jr in a coastal action drama.", rating=8.5, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", language="Telugu", quality="1080p Full HD", video_url="movies/telugu2.m3u8", year=2024, category_id=trending_cat.id),
-            Movie(title="Pushpa 2: The Rule", description="Allu Arjun returns as Pushpa Raj.", rating=9.4, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", language="Telugu", quality="1080p HDR", video_url="movies/telugu3.m3u8", year=2024, category_id=trending_cat.id),
-            Movie(title="Kalki 2898 AD", description="Mythology meets sci-fi.", rating=9.2, image="https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", language="Telugu", quality="1080p IMAX", video_url="movies/telugu4.m3u8", year=2024, category_id=latest_cat.id),
-            Movie(title="Baahubali: The Conclusion", description="Why Kattappa killed Baahubali.", rating=9.5, image="https://images.unsplash.com/photo-1535016120720-40c646bebbcf", language="Telugu", quality="1080p BluRay", video_url="movies/telugu5.m3u8", year=2017, category_id=global_cat.id),
-            Movie(title="RRR", description="Action-packed tale of freedom fighters.", rating=9.0, image="https://images.unsplash.com/photo-1542204172-3c1f837066ad", language="Telugu", quality="1080p UHD", video_url="movies/telugu6.m3u8", year=2022, category_id=global_cat.id),
+            Movie(title="Vishwambhara", description="Socio-fantasy epic starring Chiranjeevi.", rating=9.6, image="https://images.unsplash.com/photo-1542204172-3c1f837066ad", language="Telugu", quality="1080p 10-Bit", video_url="movies/telugu1.m3u8", download_url="https://archive.org/details/vishwambhara_telugu", year=2025, category_id=latest_cat.id),
+            Movie(title="Devara: Part 1", description="NTR Jr in a coastal action drama.", rating=8.5, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", language="Telugu", quality="1080p Full HD", video_url="movies/telugu2.m3u8", download_url="https://archive.org/details/devara_telugu", year=2024, category_id=trending_cat.id),
+            Movie(title="Pushpa 2: The Rule", description="Allu Arjun returns as Pushpa Raj.", rating=9.4, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", language="Telugu", quality="1080p HDR", video_url="movies/telugu3.m3u8", download_url="https://archive.org/details/pushpa2_telugu", year=2024, category_id=trending_cat.id),
+            Movie(title="Kalki 2898 AD", description="Mythology meets sci-fi.", rating=9.2, image="https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", language="Telugu", quality="1080p IMAX", video_url="movies/telugu4.m3u8", download_url="https://archive.org/details/kalki_telugu", year=2024, category_id=latest_cat.id),
+            Movie(title="Baahubali: The Conclusion", description="Historical epic masterpiece.", rating=9.5, image="https://images.unsplash.com/photo-1535016120720-40c646bebbcf", language="Telugu", quality="1080p BluRay", video_url="movies/telugu5.m3u8", download_url="https://archive.org/details/baahubali2_telugu", year=2017, category_id=global_cat.id),
             # Hindi
-            Movie(title="Jawan", description="SRK in a high-octane thriller.", rating=8.9, image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", language="Hindi", quality="1080p Full HD", video_url="movies/hindi1.m3u8", year=2023, category_id=trending_cat.id),
-            Movie(title="Dangal", description="Inspiring wrestling saga.", rating=9.1, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", language="Hindi", quality="1080p UHD", video_url="movies/hindi2.m3u8", year=2016, category_id=global_cat.id),
-            Movie(title="Pathaan", description="Spy universe expansion.", rating=8.2, image="https://images.unsplash.com/photo-1542204172-3c1f837066ad", language="Hindi", quality="1080p HD", video_url="movies/hindi3.m3u8", year=2023, category_id=global_cat.id),
-            Movie(title="Stree 2", description="Horror comedy sequel.", rating=8.8, image="https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", language="Hindi", quality="1080p Ultra HD", video_url="movies/hindi4.m3u8", year=2024, category_id=latest_cat.id),
+            Movie(title="Jawan", description="SRK in a high-octane thriller.", rating=8.9, image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", language="Hindi", quality="1080p Full HD", video_url="movies/hindi1.m3u8", download_url="https://archive.org/details/jawan_hindi", year=2023, category_id=trending_cat.id),
+            Movie(title="Dangal", description="Inspiring wrestling saga.", rating=9.1, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", language="Hindi", quality="1080p UHD", video_url="movies/hindi2.m3u8", download_url="https://archive.org/details/dangal_hindi", year=2016, category_id=global_cat.id),
             # English
             Movie(title="Gladiator II", description="The legacy of Rome continues.", rating=8.8, image="https://images.unsplash.com/photo-1594909122845-11baa439b7bf", language="English", quality="1080p Ultra HD", video_url="movies/gladiator.m3u8", download_url="https://archive.org/details/gladiator_ii", year=2024, category_id=trending_cat.id),
-            Movie(title="Dune: Part Two", description="Paul Atreides unites with Chani.", rating=9.3, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", language="English", quality="1080p IMAX", video_url="movies/dune2.m3u8", year=2024, category_id=latest_cat.id),
-            Movie(title="Interstellar", description="Our destiny lies above.", rating=9.0, image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", language="English", quality="1080p Remastered", video_url="movies/interstellar.m3u8", year=2014, category_id=global_cat.id),
-            # Tamil
-            Movie(title="Leo", description="Action thriller from Tamil cinema.", rating=8.7, image="https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", language="Tamil", quality="1080p Full HD", video_url="movies/tamil1.m3u8", year=2023, category_id=trending_cat.id),
-            Movie(title="Ponniyin Selvan 2", description="Chola legacy continues.", rating=8.4, image="https://images.unsplash.com/photo-1535016120720-40c646bebbcf", language="Tamil", quality="1080p HD", video_url="movies/tamil2.m3u8", year=2023, category_id=global_cat.id),
-            # Malayalam
-            Movie(title="Manjummel Boys", description="Survival thriller.", rating=9.3, image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", language="Malayalam", quality="1080p Ultra HD", video_url="movies/manjummel.m3u8", year=2024, category_id=latest_cat.id),
-            Movie(title="Premalu", description="Refreshing love story.", rating=8.6, image="https://images.unsplash.com/photo-1542204172-3c1f837066ad", language="Malayalam", quality="1080p Full HD", video_url="movies/premalu.m3u8", year=2024, category_id=trending_cat.id),
-            # Kannada
-            Movie(title="Kantis", description="Kannada action thriller.", rating=8.1, image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", language="Kannada", quality="1080p UHD", video_url="movies/kantis.m3u8", year=2026, category_id=latest_cat.id),
-            Movie(title="KGF Chapter 2", description="Rocky's empire.", rating=9.4, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", language="Kannada", quality="1080p IMAX", video_url="movies/kgf2.m3u8", year=2022, category_id=global_cat.id),
+            Movie(title="Dune: Part Two", description="Paul Atreides unites with Chani.", rating=9.3, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", language="English", quality="1080p IMAX", video_url="movies/dune2.m3u8", download_url="https://archive.org/details/dune2_english", year=2024, category_id=latest_cat.id),
+            # Other Languages
+            Movie(title="Leo", description="Thalapathy Vijay in LCU.", rating=8.7, image="https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", language="Tamil", quality="1080p Full HD", video_url="movies/tamil1.m3u8", download_url="https://archive.org/details/leo_tamil", year=2023, category_id=trending_cat.id),
+            Movie(title="Manjummel Boys", description="Survival journey.", rating=9.3, image="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", language="Malayalam", quality="1080p Ultra HD", video_url="movies/manjummel.m3u8", download_url="https://archive.org/details/manjummel_malayalam", year=2024, category_id=latest_cat.id),
+            Movie(title="KGF Chapter 2", description="Rocky's empire.", rating=9.4, image="https://images.unsplash.com/photo-1536440136628-849c177e76a1", language="Kannada", quality="1080p IMAX", video_url="movies/kgf2.m3u8", download_url="https://archive.org/details/kgf2_kannada", year=2022, category_id=global_cat.id),
         ]
         db.add_all(movies)
         db.commit()
@@ -261,7 +258,5 @@ def _seed(db: Session):
         admin = User(username="admin", email="admin@cinestream.com", password_hash=get_password_hash("admin123"), role="admin")
         db.add(admin)
         db.commit()
-
-
 
 app.include_router(api)
