@@ -111,26 +111,44 @@ def _seed(db: Session):
             cats[name] = cat
         
         seed_data = [
-            {"title": "Jurassic Park", "year": 1993, "language": "English", "cat": "Golden Archive (1990-2000)"},
-            {"title": "Titanic", "year": 1997, "language": "English", "cat": "Golden Archive (1990-2000)"},
-            {"title": "DDLJ", "year": 1995, "language": "Hindi", "cat": "Golden Archive (1990-2000)"},
-            {"title": "Vishwambhara", "year": 2025, "language": "Telugu", "cat": "Modern Era (2001-2026)"},
-            {"title": "Pushpa 2", "year": 2024, "language": "Telugu", "cat": "Modern Era (2001-2026)"},
-            {"title": "Devara Part 2", "year": 2026, "language": "Telugu", "cat": "Upcoming Nodes"},
+            {"title": "Jurassic Park", "year": 1993, "language": "English", "cat": "Golden Archive (1990-2000)", 
+             "img": "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=500"},
+            {"title": "Titanic", "year": 1997, "language": "English", "cat": "Golden Archive (1990-2000)",
+             "img": "https://images.unsplash.com/photo-1500076656116-558758c991c1?q=80&w=500"},
+            {"title": "DDLJ", "year": 1995, "language": "Hindi", "cat": "Golden Archive (1990-2000)",
+             "img": "https://images.unsplash.com/photo-1542204172-3c1f837066ad?q=80&w=500"},
+            {"title": "Baashha", "year": 1995, "language": "Tamil", "cat": "Golden Archive (1990-2000)",
+             "img": "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=500"},
+            {"title": "Vishwambhara", "year": 2025, "language": "Telugu", "cat": "Modern Era (2001-2026)",
+             "img": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=500"},
+            {"title": "Pushpa 2", "year": 2024, "language": "Telugu", "cat": "Modern Era (2001-2026)",
+             "img": "https://images.unsplash.com/photo-1531259683007-016a7b628fc3?q=80&w=500"},
+            {"title": "Kalki 2898 AD", "year": 2024, "language": "Telugu", "cat": "Modern Era (2001-2026)",
+             "img": "https://images.unsplash.com/photo-1535016120720-40c646bebbcf?q=80&w=500"},
+            {"title": "Devara Part 2", "year": 2026, "language": "Telugu", "cat": "Upcoming Nodes",
+             "img": "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?q=80&w=500"},
+            {"title": "Spirit", "year": 2025, "language": "Telugu", "cat": "Upcoming Nodes",
+             "img": "https://images.unsplash.com/photo-1509248961158-e54f6934749c?q=80&w=500"},
         ]
         for m in seed_data:
-            if not db.query(Movie).filter(Movie.title == m["title"]).first():
+            existing = db.query(Movie).filter(Movie.title == m["title"]).first()
+            if not existing:
                 cat = cats.get(m["cat"])
                 if cat:
                     try:
                         db.add(Movie(
                             title=m["title"], description=f"Premium 1080p archival segment for {m['title']}.", rating=9.0,
-                            image=f"https://images.unsplash.com/photo-{1540000000000 + m['year']}", language=m["language"], quality="1080p",
+                            image=m["img"], language=m["language"], quality="1080p",
                             video_url=f"movies/{m['title'].lower().replace(' ', '_')}.m3u8",
                             download_url=f"https://archive.org/details/{m['title'].lower().replace(' ', '_')}",
                             year=m["year"], category_id=cat.id
                         )); db.commit()
                     except: db.rollback()
+            else:
+                # Update image if it was the broken generated one
+                if "photo-154" in str(existing.image):
+                    existing.image = m["img"]
+                    db.commit()
     except: db.rollback()
 
 _db_ready = False
