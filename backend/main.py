@@ -13,23 +13,26 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 import sys
-sys.path.append(os.path.dirname(__file__))
+# Dynamic path resolution for Vercel
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
 
-# Standardize Imports for Vercel
 try:
-    from database import get_db, Movie, User, Category, WatchHistory, favorites, init_db, _seed
-    from auth_utils import (
-        get_password_hash, verify_password, create_access_token, 
-        get_current_user, get_current_admin, ACCESS_TOKEN_EXPIRE_MINUTES
-    )
-    from storage import generate_presigned_url
+    import database
+    import auth_utils
+    import storage
 except ImportError:
-    from .database import get_db, Movie, User, Category, WatchHistory, favorites, init_db, _seed
-    from .auth_utils import (
-        get_password_hash, verify_password, create_access_token, 
-        get_current_user, get_current_admin, ACCESS_TOKEN_EXPIRE_MINUTES
-    )
-    from .storage import generate_presigned_url
+    from . import database
+    from . import auth_utils
+    from . import storage
+
+from database import get_db, Movie, User, Category, WatchHistory, favorites, init_db, _seed
+from auth_utils import (
+    get_password_hash, verify_password, create_access_token, 
+    get_current_user, get_current_admin, ACCESS_TOKEN_EXPIRE_MINUTES
+)
+from storage import generate_presigned_url
 
 limiter = Limiter(key_func=get_remote_address)
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -97,7 +100,11 @@ class Token(BaseModel):
     user: UserSchema
 
 # --- API ---
-api = APIRouter(prefix="/api")
+api = APIRouter()
+
+@api.get("/health")
+def health():
+    return {"status": "Operational", "timestamp": datetime.now()}
 
 # AUTH
 @api.post("/auth/signup", response_model=UserSchema)
