@@ -111,72 +111,52 @@ def _seed(db: Session):
             cats[name] = cat
         
         seed_data = [
-            # 1950s - 1980s (Golden Archives)
-            {"title": "Ben-Hur", "year": 1959, "language": "English", "cat": "Golden Archive (1990-2000)", 
-             "img": "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=500"},
-            {"title": "The Godfather", "year": 1972, "language": "English", "cat": "Golden Archive (1990-2000)",
-             "img": "https://images.unsplash.com/photo-1542204172-3c1f837066ad?q=80&w=500"},
-            {"title": "Star Wars", "year": 1977, "language": "English", "cat": "Golden Archive (1990-2000)",
-             "img": "https://images.unsplash.com/photo-1531259683007-016a7b628fc3?q=80&w=500"},
-            {"title": "Sholay", "year": 1975, "language": "Hindi", "cat": "Golden Archive (1990-2000)",
-             "img": "https://images.unsplash.com/photo-1509248961158-e54f6934749c?q=80&w=500"},
-            
-            # 1990s
-            {"title": "Jurassic Park", "year": 1993, "language": "English", "cat": "Golden Archive (1990-2000)", 
-             "img": "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=500"},
-            {"title": "Titanic", "year": 1997, "language": "English", "cat": "Golden Archive (1990-2000)",
-             "img": "https://images.unsplash.com/photo-1500076656116-558758c991c1?q=80&w=500"},
-            {"title": "DDLJ", "year": 1995, "language": "Hindi", "cat": "Golden Archive (1990-2000)",
-             "img": "https://images.unsplash.com/photo-1542204172-3c1f837066ad?q=80&w=500"},
-            {"title": "Baashha", "year": 1995, "language": "Tamil", "cat": "Golden Archive (1990-2000)",
-             "img": "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=500"},
-            {"title": "Matrix", "year": 1999, "language": "English", "cat": "Golden Archive (1990-2000)",
-             "img": "https://images.unsplash.com/photo-1535016120720-40c646bebbcf?q=80&w=500"},
+            # Real Working Archival Identifiers (Internet Archive)
+            {"title": "Night of the Living Dead", "year": 1968, "language": "English", "cat": "Golden Archive (1990-2000)", 
+             "ia_id": "night_of_the_living_dead_2", "img": "https://images.unsplash.com/photo-1509248961158-e54f6934749c?q=80&w=800"},
+            {"title": "The Fast and the Furious", "year": 1954, "language": "English", "cat": "Golden Archive (1990-2000)",
+             "ia_id": "the-fast-and-the-furious-1954", "img": "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800"},
+            {"title": "Charade", "year": 1963, "language": "English", "cat": "Golden Archive (1990-2000)",
+             "ia_id": "Charade1963", "img": "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=800"},
+            {"title": "His Girl Friday", "year": 1940, "language": "English", "cat": "Golden Archive (1990-2000)",
+             "ia_id": "HisGirlFriday", "img": "https://images.unsplash.com/photo-1542204172-3c1f837066ad?q=80&w=800"},
+            {"title": "Plan 9 from Outer Space", "year": 1959, "language": "English", "cat": "Golden Archive (1990-2000)",
+             "ia_id": "Plan_9_from_Outer_Space_1959", "img": "https://images.unsplash.com/photo-1535016120720-40c646bebbcf?q=80&w=800"},
 
-            # 2000s - 2020s (Modern Era)
-            {"title": "Avatar", "year": 2009, "language": "English", "cat": "Modern Era (2001-2026)",
-             "img": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=500"},
-            {"title": "The Dark Knight", "year": 2008, "language": "English", "cat": "Modern Era (2001-2026)",
-             "img": "https://images.unsplash.com/photo-1509248961158-e54f6934749c?q=80&w=500"},
-            {"title": "Bahubali", "year": 2015, "language": "Telugu", "cat": "Modern Era (2001-2026)",
-             "img": "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?q=80&w=500"},
-            {"title": "Vishwambhara", "year": 2025, "language": "Telugu", "cat": "Modern Era (2001-2026)",
-             "img": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=500"},
-            {"title": "Pushpa 2", "year": 2024, "language": "Telugu", "cat": "Modern Era (2001-2026)",
-             "img": "https://images.unsplash.com/photo-1531259683007-016a7b628fc3?q=80&w=500"},
-            {"title": "Kalki 2898 AD", "year": 2024, "language": "Telugu", "cat": "Modern Era (2001-2026)",
-             "img": "https://images.unsplash.com/photo-1535016120720-40c646bebbcf?q=80&w=500"},
-            {"title": "Animal", "year": 2023, "language": "Hindi", "cat": "Modern Era (2001-2026)",
-             "img": "https://images.unsplash.com/photo-1531259683007-016a7b628fc3?q=80&w=500"},
-            {"title": "Dangal", "year": 2016, "language": "Hindi", "cat": "Modern Era (2001-2026)",
-             "img": "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?q=80&w=500"},
-
-            # Upcoming
-            {"title": "Devara Part 2", "year": 2026, "language": "Telugu", "cat": "Upcoming Nodes",
-             "img": "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?q=80&w=500"},
-            {"title": "Spirit", "year": 2025, "language": "Telugu", "cat": "Upcoming Nodes",
-             "img": "https://images.unsplash.com/photo-1509248961158-e54f6934749c?q=80&w=500"},
-            {"title": "The Avatar Core", "year": 2026, "language": "English", "cat": "Upcoming Nodes",
-             "img": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=500"},
+            # Modern Era (Trailers/Creative Commons)
+            {"title": "Big Buck Bunny", "year": 2008, "language": "English", "cat": "Modern Era (2001-2026)",
+             "ia_id": "BigBuckBunny_328", "img": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=800"},
+            {"title": "Sita Ramam Trailer", "year": 2022, "language": "Telugu", "cat": "Modern Era (2001-2026)",
+             "ia_id": "sita-ramam-official-trailer-telugu-dulquer-salmaan-mrunal-thakur-rashmika-hanu-raghavapudi", "img": "https://images.unsplash.com/photo-1531259683007-016a7b628fc3?q=80&w=800"},
+            {"title": "Kalki 2898 AD Glimpse", "year": 2024, "language": "Telugu", "cat": "Modern Era (2001-2026)",
+             "ia_id": "project-k-kalki-2898-ad-glimpse-prabhas-kamal-haasan-amitabh-bachchan-deepika", "img": "https://images.unsplash.com/photo-1535016120720-40c646bebbcf?q=80&w=800"},
+            {"title": "Pushpa 2 Teaser", "year": 2024, "language": "Telugu", "cat": "Modern Era (2001-2026)",
+             "ia_id": "pushpa-2-the-rule-teaser-allu-arjun-sukumar-rashmika-mandanna-fahadh-faasil-dsp", "img": "https://images.unsplash.com/photo-1531259683007-016a7b628fc3?q=80&w=800"},
+            {"title": "Devara Glimpse", "year": 2024, "language": "Telugu", "cat": "Upcoming Nodes",
+             "ia_id": "devara-glimpse-telugu-jr-ntr-saif-ali-khan-janhvi-kapoor-anirudh-ravichander-koratala-siva", "img": "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?q=80&w=800"},
         ]
         for m in seed_data:
             existing = db.query(Movie).filter(Movie.title == m["title"]).first()
+            ia_id = m.get("ia_id", "default")
+            stream_url = f"https://archive.org/download/{ia_id}/{ia_id}.mp4" if "ia_id" in m else f"https://archive.org/download/{m['title'].lower().replace(' ', '-')}/video.mp4"
+            
             if not existing:
                 cat = cats.get(m["cat"])
                 if cat:
                     try:
                         db.add(Movie(
-                            title=m["title"], description=f"Premium 1080p archival segment for {m['title']}.", rating=9.0,
+                            title=m["title"], description=f"Authentic {m['year']} cinematic fragment from the neural archive.", rating=9.5,
                             image=m["img"], language=m["language"], quality="1080p",
-                            video_url=f"movies/{m['title'].lower().replace(' ', '_')}.m3u8",
-                            download_url=f"https://archive.org/details/{m['title'].lower().replace(' ', '_')}",
+                            video_url=stream_url,
+                            download_url=f"https://archive.org/details/{ia_id}",
                             year=m["year"], category_id=cat.id
                         )); db.commit()
                     except: db.rollback()
             else:
-                # Update existing images and years
+                # Update to real working identifiers
                 existing.image = m["img"]
-                existing.year = m["year"]
+                existing.video_url = stream_url
+                existing.download_url = f"https://archive.org/details/{ia_id}"
                 db.commit()
     except: db.rollback()
 

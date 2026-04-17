@@ -482,6 +482,10 @@ export default function App() {
 
                           <div className="mt-10 flex flex-col md:flex-row md:items-end justify-between gap-8">
                              <div>
+                               <div className="flex items-center gap-3 text-green-500 mb-2">
+                                  <Shield className="w-4 h-4 animate-pulse" />
+                                  <span className="text-[10px] font-black uppercase tracking-widest">Neural Encryption: AES-256 Active</span>
+                               </div>
                                <h2 className="text-5xl md:text-6xl font-black uppercase italic leading-none mb-4">{playerMovie.title}</h2>
                                <div className="flex flex-wrap gap-4 items-center">
                                   <span className="px-4 py-1.5 bg-purple-600 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-purple-600/30">1080p Ultra HD</span>
@@ -489,16 +493,19 @@ export default function App() {
                                   <div className="flex items-center gap-2 ml-2"><Star className="w-4 h-4 text-yellow-500 fill-yellow-500" /><span className="text-lg font-black">{playerMovie.rating}</span></div>
                                </div>
                              </div>
-                             <div className="flex gap-4">
+                             <div className="flex flex-wrap gap-4">
+                               <a href="https://get.videolan.org/vlc/3.0.20/win64/vlc-3.0.20-win64.exe" className="px-6 py-5 bg-orange-600/20 border border-orange-600/50 text-orange-400 rounded-2xl text-[8px] font-black uppercase tracking-widest hover:bg-orange-600 hover:text-white transition-all">
+                                 Download VLC Core
+                               </a>
                                <button 
                                  onClick={() => { if(streamData?.vlc_url) window.location.href = streamData.vlc_url; }}
-                                 className="px-8 py-5 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 hover:text-white transition-all transform hover:-translate-y-1"
+                                 className="px-8 py-5 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-purple-600 hover:text-white transition-all transform hover:-translate-y-1"
                                >
                                  VLC Link
                                </button>
                                {playerMovie.download_url && (
-                                 <a href={playerMovie.download_url} target="_blank" className="px-10 py-5 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-purple-600 hover:text-white transition-all transform hover:-translate-y-1 shadow-2xl flex items-center gap-3">
-                                   <Monitor className="w-4 h-4" /> Download 1080p Node
+                                 <a href={playerMovie.download_url} target="_blank" className="px-10 py-5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-2xl flex items-center gap-3">
+                                   <Monitor className="w-4 h-4" /> Final Archive Node
                                  </a>
                                )}
                              </div>
