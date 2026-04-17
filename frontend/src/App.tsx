@@ -125,26 +125,24 @@ const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
 
   if (loading) return <div className="py-40 text-center text-purple-600 animate-pulse font-black uppercase text-xs tracking-[1em]">Establishing Neural Link...</div>;
 
-   const classics = movies.filter(m => m.year < 2000);
-  const moderns = movies.filter(m => m.year >= 2000);
-  const latest = movies.filter(m => m.year >= 2024);
-  const trending = movies.filter(m => m.rating >= 9.0);
+   const present = movies.filter(m => m.year >= 2024 && m.year <= 2025);
+  const upcoming = movies.filter(m => m.year >= 2026);
 
   return (
     <div className="min-h-screen bg-[#050505]">
        {movies.length > 0 && (
          <div className="relative h-[85vh] w-full overflow-hidden">
-            <img src={latest[0]?.image || movies[0].image} className="w-full h-full object-cover opacity-40 scale-105" alt="" />
+            <img src={present[0]?.image || movies[0].image} className="w-full h-full object-cover opacity-40 scale-105" alt="" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]/60" />
             <div className="absolute inset-y-0 left-0 w-full md:w-2/3 flex flex-col justify-center px-10 md:px-20">
                <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
                   <span className="bg-purple-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-8 inline-flex items-center gap-2 shadow-lg shadow-purple-600/30">
                     <Star className="w-3 h-3 fill-current" /> Neural Synchronized Archive
                   </span>
-                  <h1 className="text-6xl md:text-8xl font-black uppercase italic leading-none mb-6 drop-shadow-2xl">{(latest[0]?.title || movies[0].title).replace(/ \(\d+\)/, '')}</h1>
-                  <p className="text-lg md:text-xl text-gray-300 font-medium max-w-2xl mb-12 leading-relaxed opacity-80">{latest[0]?.description || movies[0].description}</p>
+                  <h1 className="text-6xl md:text-8xl font-black uppercase italic leading-none mb-6 drop-shadow-2xl">{(present[0]?.title || movies[0].title).replace(/ \(\d+\)/, '')}</h1>
+                  <p className="text-lg md:text-xl text-gray-300 font-medium max-w-2xl mb-12 leading-relaxed opacity-80">{present[0]?.description || movies[0].description}</p>
                   <div className="flex flex-wrap gap-6">
-                    <button onClick={() => onSelect(latest[0] || movies[0])} className="bg-white text-black px-12 py-5 rounded-2xl font-black uppercase flex items-center gap-4 hover:bg-purple-600 hover:text-white transition-all transform hover:scale-105 shadow-2xl">
+                    <button onClick={() => onSelect(present[0] || movies[0])} className="bg-white text-black px-12 py-5 rounded-2xl font-black uppercase flex items-center gap-4 hover:bg-purple-600 hover:text-white transition-all transform hover:scale-105 shadow-2xl">
                        <Play className="w-6 h-6 fill-current" /> Stream in 1080p
                     </button>
                     <div className="flex items-center gap-4 px-8 py-5 border border-white/10 rounded-2xl backdrop-blur-xl bg-white/5">
@@ -157,8 +155,8 @@ const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
          </div>
        )}
        <div className="-mt-48 relative z-20 space-y-32 pb-32">
-          {/* Categorized Eras */}
-          <MovieRow title="90's Golden Archive" movies={classics.length > 0 ? classics : movies.slice(0, 4)} onSelect={onSelect} />
+          {/* Era Rows */}
+          <MovieRow title="Present Cinematic Pulse" movies={present.length > 0 ? present : movies.slice(0, 4)} onSelect={onSelect} />
           
           {/* Security & Monitoring Strip */}
           <div className="px-10 md:px-20">
@@ -189,13 +187,12 @@ const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
                    onClick={async () => { await axios.post(`${API_BASE}/movies/seed`); window.location.reload(); }}
                    className="px-10 py-5 bg-white text-black rounded-3xl font-black uppercase text-xs hover:bg-purple-600 hover:text-white transition-all shadow-xl whitespace-nowrap"
                 >
-                   Force Sync Database
+                   Verify Database Core
                 </button>
              </div>
           </div>
 
-          <MovieRow title="Modern Blockbusters (2000-Present)" movies={moderns.length > 0 ? moderns : movies.slice(0, 5)} onSelect={onSelect} />
-          <MovieRow title="Trending Syncs" movies={trending.length > 0 ? trending : movies.slice(0, 6)} onSelect={onSelect} />
+          <MovieRow title="Upcoming Archives" movies={upcoming.length > 0 ? upcoming : movies.slice(0, 6)} onSelect={onSelect} />
        </div>
     </div>
   );
@@ -206,23 +203,26 @@ const ExplorePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [categories, setCategories] = useState<{id: number, name: string}[]>([]);
   const [filters, setFilters] = useState({ language: '', year: '', category_id: '' });
-  const [search, setSearch] = useState('');
 
   const load = async () => {
     const res = await axios.get(`${API_BASE}/movies`, { params: { 
       language: filters.language || undefined, 
       year_from: filters.year ? parseInt(filters.year) : undefined,
       category_id: filters.category_id || undefined,
-      q: search || undefined
     }});
     setMovies(res.data);
   };
 
   useEffect(() => {
-    axios.get(`${API_BASE}/categories`).then(res => setCategories(res.data));
+    axios.get(`${API_BASE}/categories`).then(res => {
+      setCategories(res.data);
+      if (res.data.length > 0 && !filters.category_id) {
+         setFilters(f => ({...f, category_id: res.data[0].id.toString()}));
+      }
+    });
   }, []);
 
-  useEffect(() => { load(); }, [filters, search]);
+  useEffect(() => { load(); }, [filters]);
 
   return (
     <div className="pt-40 px-6 md:px-20 min-h-screen pb-20">
@@ -232,10 +232,6 @@ const ExplorePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em]">Full HD 1080p Visual Repository</p>
           </div>
           <div className="flex flex-wrap gap-4">
-             <div className="relative w-full md:w-80">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-                <input value={search} onChange={e => setSearch(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-sm focus:border-purple-500 outline-none backdrop-blur-xl transition-all" placeholder="Search Neural Archive..." />
-             </div>
              <select onChange={e => setFilters({...filters, language: e.target.value})} className="bg-white/5 border border-white/10 rounded-2xl px-8 py-4 text-[10px] font-black uppercase outline-none focus:border-purple-500 cursor-pointer">
                 <option value="" className="bg-black">All Languages</option>
                 {['Telugu', 'Hindi', 'English', 'Tamil', 'Malayalam', 'Kannada'].map(l => <option key={l} value={l} className="bg-black">{l}</option>)}
@@ -247,9 +243,8 @@ const ExplorePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
           </div>
        </div>
 
-       {/* Category Tabs */}
+       {/* Epoch Tabs */}
        <div className="flex gap-4 mb-16 overflow-x-auto pb-4">
-          <button onClick={() => setFilters({...filters, category_id: ''})} className={`px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filters.category_id === '' ? 'bg-purple-600 shadow-xl shadow-purple-600/20' : 'bg-white/5 border border-white/10 hover:bg-white/10'}`}>Global Core</button>
           {categories.map(cat => (
             <button key={cat.id} onClick={() => setFilters({...filters, category_id: cat.id.toString()})} className={`px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filters.category_id === cat.id.toString() ? 'bg-purple-600 shadow-xl shadow-purple-600/20' : 'bg-white/5 border border-white/10 hover:bg-white/10'}`}>
                {cat.name}
@@ -271,25 +266,6 @@ const ExplorePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
             </motion.div>
           ))}
        </div>
-       {movies.length === 0 && (
-         <div className="text-center py-40 bg-white/5 rounded-[4rem] border border-dashed border-white/10 mx-6 md:mx-0">
-           <p className="text-gray-500 font-black uppercase tracking-widest animate-pulse mb-8">No Neural Fragments Found</p>
-           <button 
-             onClick={async (e) => { 
-                const btn = e.currentTarget;
-                btn.disabled = true;
-                btn.innerText = "Synchronizing Archives..."; 
-                await axios.post(`${API_BASE}/movies/seed`); 
-                await load();
-                btn.disabled = false;
-                btn.innerText = "Synchronize Archive";
-             }} 
-             className="px-10 py-5 bg-purple-600 rounded-2xl font-black uppercase text-xs hover:scale-105 transition-all shadow-2xl shadow-purple-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
-           >
-              Synchronize Archive
-           </button>
-         </div>
-       )}
     </div>
   );
 };

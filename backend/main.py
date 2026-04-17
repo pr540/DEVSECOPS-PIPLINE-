@@ -224,43 +224,38 @@ def admin_upload(
     return {"status": "Movie uploaded successfully", "id": movie.id}
 
 def _seed(db: Session):
-    # Atomic Category Sync with Dual Epochs
-    cat_names = ["90's Golden Era", "Modern Era (2000-Present)", "Trending Now", "Global Language Cores", "IMAX Special Collection"]
+    # Precise Era Sync
+    cat_names = ["Golden Archive (1990-2000)", "Modern Era (2001-2026)", "Upcoming Nodes"]
     for name in cat_names:
         if not db.query(Category).filter(Category.name == name).first():
             db.add(Category(name=name))
             db.commit()
     
-    classic_cat = db.query(Category).filter(Category.name == "90's Golden Era").first()
-    modern_cat = db.query(Category).filter(Category.name == "Modern Era (2000-Present)").first()
-    trending_cat = db.query(Category).filter(Category.name == "Trending Now").first()
-    global_cat = db.query(Category).filter(Category.name == "Global Language Cores").first()
+    golden_cat = db.query(Category).filter(Category.name == "Golden Archive (1990-2000)").first()
+    modern_cat = db.query(Category).filter(Category.name == "Modern Era (2001-2026)").first()
+    upcoming_cat = db.query(Category).filter(Category.name == "Upcoming Nodes").first()
 
-    # Massive Movie Seed (30+ Titles)
+    # Re-seed with Exact Epochs
     seed_movies = [
-        # --- 90's GOLDEN ERA ---
-        {"title": "Jurassic Park", "description": "Classic dinosaur adventure.", "rating": 9.3, "image": "https://images.unsplash.com/photo-1542204172-3c1f837066ad", "language": "English", "quality": "1080p Remastered", "video_url": "movies/jp.m3u8", "download_url": "https://archive.org/details/jurassic_park_1993", "year": 1993, "cat": classic_cat},
-        {"title": "Dilwale Dulhania Le Jayenge", "description": "The cult romance of Bollywood.", "rating": 9.5, "image": "https://images.unsplash.com/photo-1536440136628-849c177e76a1", "language": "Hindi", "quality": "1080p BluRay", "video_url": "movies/ddlj.m3u8", "download_url": "https://archive.org/details/ddlj_hindi", "year": 1995, "cat": classic_cat},
-        {"title": "Pulp Fiction", "description": "Quentin Tarantino's masterpiece.", "rating": 8.9, "image": "https://images.unsplash.com/photo-1594909122845-11baa439b7bf", "language": "English", "quality": "1080p HD", "video_url": "movies/pulp.m3u8", "year": 1994, "cat": classic_cat},
-        {"title": "Baashha", "description": "Superstar Rajinikanth in his prime.", "rating": 9.4, "image": "https://images.unsplash.com/photo-1531259683007-016a7b628fc3", "language": "Tamil", "quality": "1080p Digital", "video_url": "movies/baashha.m3u8", "year": 1995, "cat": classic_cat},
-        {"title": "Shiva", "description": "The movie that changed Telugu cinema.", "rating": 9.2, "image": "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", "language": "Telugu", "quality": "1080p Remastered", "video_url": "movies/shiva.m3u8", "year": 1989, "cat": classic_cat},
+        # --- 1990 - 2000 ---
+        {"title": "Jurassic Park", "description": "Classic dinosaur adventure.", "rating": 9.3, "image": "https://images.unsplash.com/photo-1542204172-3c1f837066ad", "language": "English", "quality": "1080p", "year": 1993, "cat": golden_cat},
+        {"title": "DDLJ", "description": "Iconic Bollywood romance.", "rating": 9.5, "image": "https://images.unsplash.com/photo-1536440136628-849c177e76a1", "language": "Hindi", "quality": "1080p", "year": 1995, "cat": golden_cat},
+        {"title": "Baashha", "description": "Rajinikanth's cult classic.", "rating": 9.4, "image": "https://images.unsplash.com/photo-1531259683007-016a7b628fc3", "language": "Tamil", "quality": "1080p", "year": 1995, "cat": golden_cat},
+        {"title": "Shiva", "description": "Intense college drama.", "rating": 9.2, "image": "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", "language": "Telugu", "quality": "1080p", "year": 1989, "cat": golden_cat},
+        {"title": "Titanic", "description": "Epic tragedy.", "rating": 8.8, "image": "https://images.unsplash.com/photo-1594909122845-11baa439b7bf", "language": "English", "quality": "1080p", "year": 1997, "cat": golden_cat},
+
+        # --- 2001 - 2026 ---
+        {"title": "Vishwambhara", "description": "Megastar Chiranjeevi's epic.", "rating": 9.6, "image": "https://images.unsplash.com/photo-1542204172-3c1f837066ad", "language": "Telugu", "quality": "1080p", "year": 2025, "cat": modern_cat},
+        {"title": "Pushpa 2", "description": "The rule begins.", "rating": 9.4, "image": "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", "language": "Telugu", "quality": "1080p", "year": 2024, "cat": modern_cat},
+        {"title": "Kalki 2898 AD", "description": "Mythology sci-fi.", "rating": 9.2, "image": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", "language": "Telugu", "quality": "1080p", "year": 2024, "cat": modern_cat},
+        {"title": "Animal", "description": "Dark thriller.", "rating": 8.5, "image": "https://images.unsplash.com/photo-1534447677768-be436bb09401", "language": "Hindi", "quality": "1080p", "year": 2023, "cat": modern_cat},
+        {"title": "Dune 2", "description": "Interstellar journey.", "rating": 9.3, "image": "https://images.unsplash.com/photo-1535016120720-40c646bebbcf", "language": "English", "quality": "1080p", "year": 2024, "cat": modern_cat},
+        {"title": "RRR", "description": "Revolutionary epic.", "rating": 9.0, "image": "https://images.unsplash.com/photo-1531259683007-016a7b628fc3", "language": "Telugu", "quality": "1080p", "year": 2022, "cat": modern_cat},
         
-        # --- MODERN ERA (2000-PRESENT) ---
-        {"title": "Vishwambhara", "description": "Socio-fantasy epic.", "rating": 9.6, "image": "https://images.unsplash.com/photo-1542204172-3c1f837066ad", "language": "Telugu", "quality": "1080p 10-Bit", "video_url": "movies/v1.m3u8", "download_url": "https://archive.org/details/vishwambhara_telugu", "year": 2025, "cat": modern_cat},
-        {"title": "Devara: Part 1", "description": "NTR Jr action drama.", "rating": 8.5, "image": "https://images.unsplash.com/photo-1536440136628-849c177e76a1", "language": "Telugu", "quality": "1080p Full HD", "video_url": "movies/d1.m3u8", "download_url": "https://archive.org/details/devara_telugu", "year": 2024, "cat": trending_cat},
-        {"title": "Pushpa 2: The Rule", "description": "The rise of Pushpa Raj.", "rating": 9.4, "image": "https://images.unsplash.com/photo-1594909122845-11baa439b7bf", "language": "Telugu", "quality": "1080p HDR", "video_url": "movies/p2.m3u8", "download_url": "https://archive.org/details/pushpa2_telugu", "year": 2024, "cat": trending_cat},
-        {"title": "Kalki 2898 AD", "description": "Mythology meets sci-fi.", "rating": 9.2, "image": "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", "language": "Telugu", "quality": "1080p IMAX", "video_url": "movies/k1.m3u8", "year": 2024, "cat": modern_cat},
-        {"title": "Salaar", "description": "Violence has a new name.", "rating": 8.1, "image": "https://images.unsplash.com/photo-1531259683007-016a7b628fc3", "language": "Telugu", "quality": "1080p HD", "video_url": "movies/s1.m3u8", "year": 2023, "cat": modern_cat},
-        {"title": "Guntur Kaaram", "description": "Spicy action drama.", "rating": 7.5, "image": "https://images.unsplash.com/photo-1594909122845-11baa439b7bf", "language": "Telugu", "quality": "1080p UHD", "video_url": "movies/gk.m3u8", "year": 2024, "cat": modern_cat},
-        
-        {"title": "Animal", "description": "Dark intense drama.", "rating": 8.2, "image": "https://images.unsplash.com/photo-1534447677768-be436bb09401", "language": "Hindi", "quality": "1080p BluRay", "video_url": "movies/a1.m3u8", "year": 2023, "cat": modern_cat},
-        {"title": "Jawan", "description": "High octane action.", "rating": 8.9, "image": "https://images.unsplash.com/photo-1536440136628-849c177e76a1", "language": "Hindi", "quality": "1080p Full HD", "video_url": "movies/j1.m3u8", "year": 2023, "cat": trending_cat},
-        {"title": "Animal", "description": "Emotional father-son bond.", "rating": 8.0, "image": "https://images.unsplash.com/photo-1509248961158-e54f6934749c", "language": "Hindi", "quality": "1080p 10-Bit", "video_url": "movies/animal.m3u8", "year": 2023, "cat": modern_cat},
-        
-        {"title": "Dune: Part Two", "description": "Sci-fi masterpiece.", "rating": 9.3, "image": "https://images.unsplash.com/photo-1535016120720-40c646bebbcf", "language": "English", "quality": "1080p IMAX", "video_url": "movies/dune2.m3u8", "year": 2024, "cat": modern_cat},
-        {"title": "Gladiator II", "description": "The arena awaits.", "rating": 8.8, "image": "https://images.unsplash.com/photo-1594909122845-11baa439b7bf", "language": "English", "quality": "1080p UHD", "video_url": "movies/g2.m3u8", "year": 2024, "cat": modern_cat},
-        {"title": "Vikram", "description": "Action redefined.", "rating": 9.0, "image": "https://images.unsplash.com/photo-1531259683007-016a7b628fc3", "language": "Tamil", "quality": "1080p 10-Bit", "video_url": "movies/vikram.m3u8", "year": 2022, "cat": global_cat},
-        {"title": "KGF Chapter 2", "description": "Rocky Bhai's world.", "rating": 9.4, "image": "https://images.unsplash.com/photo-1536440136628-849c177e76a1", "language": "Kannada", "quality": "1080p IMAX", "video_url": "movies/kgf2.m3u8", "year": 2022, "cat": modern_cat},
+        # --- UPCOMING ---
+        {"title": "Devara Part 2", "description": "Coastal war continues.", "rating": 9.7, "image": "https://images.unsplash.com/photo-1536440136628-849c177e76a1", "language": "Telugu", "quality": "1080p", "year": 2026, "cat": upcoming_cat},
+        {"title": "The Avatar Core", "description": "Deep sea exploration.", "rating": 8.9, "image": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", "language": "English", "quality": "1080p", "year": 2026, "cat": upcoming_cat},
+        {"title": "Spirit", "description": "Prabhas in intense cop role.", "rating": 9.8, "image": "https://images.unsplash.com/photo-1509248961158-e54f6934749c", "language": "Telugu", "quality": "1080p", "year": 2025, "cat": upcoming_cat},
     ]
 
     for m in seed_movies:
@@ -268,11 +263,13 @@ def _seed(db: Session):
             if m["cat"]:
                 db.add(Movie(
                     title=m["title"], description=m["description"], rating=m["rating"],
-                    image=m["image"], language=m["language"], quality=m["quality"],
-                    video_url=m["video_url"], download_url=m.get("download_url"),
+                    image=m["image"], language=m["language"], quality="1080p",
+                    video_url=f"movies/{m['title'].lower().replace(' ', '_')}.m3u8",
+                    download_url=f"https://archive.org/details/{m['title'].lower().replace(' ', '_')}",
                     year=m["year"], category_id=m["cat"].id
                 ))
     db.commit()
+
 
 
 
