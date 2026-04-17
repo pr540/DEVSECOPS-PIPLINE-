@@ -94,7 +94,7 @@ const MovieRow = ({ title, movies, onSelect }: { title: string, movies: Movie[],
     <div className="mb-12 relative group/row" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
        <h2 className="text-xl font-bold mb-6 px-10 flex items-center gap-3"><span className="w-1 h-6 bg-purple-600 rounded-full" />{title}</h2>
        <div className="relative">
-          <button onClick={() => scroll('left')} className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-[calc(100%-24px)] bg-black/60 opacity-Group-hover/row:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-md"><ChevronLeft /></button>
+          <button onClick={() => scroll('left')} className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-[calc(100%-24px)] bg-black/60 opacity-0 group-hover/row:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-md"><ChevronLeft /></button>
           <div ref={scrollRef} className="flex gap-4 overflow-x-hidden px-10 scroll-smooth">
              {movies.map(movie => (
                <motion.div key={movie.id} whileHover={{ scale: 1.05, zIndex: 20 }} className="flex-shrink-0 w-64 aspect-[2/3] rounded-xl overflow-hidden cursor-pointer relative group" onClick={() => onSelect(movie)}>
@@ -109,7 +109,7 @@ const MovieRow = ({ title, movies, onSelect }: { title: string, movies: Movie[],
                </motion.div>
              ))}
           </div>
-          <button onClick={() => scroll('right')} className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-[calc(100%-24px)] bg-black/60 opacity-Group-hover/row:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-md"><ChevronRight /></button>
+          <button onClick={() => scroll('right')} className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-[calc(100%-24px)] bg-black/60 opacity-0 group-hover/row:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-md"><ChevronRight /></button>
        </div>
     </div>
   );
