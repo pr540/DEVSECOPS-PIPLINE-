@@ -195,14 +195,40 @@ def ensure_db():
 def health(): return {"status": "Operational", "timestamp": datetime.now()}
 
 @app.get("/api/movies", response_model=List[MovieSchema])
-def list_movies(category_id: Optional[int] = None, db: Session = Depends(get_db)):
+def list_movies(category_id: Optional[int] = None, q: Optional[str] = None, db: Session = Depends(get_db)):
     ensure_db()
     query = db.query(Movie)
     if category_id: query = query.filter(Movie.category_id == category_id)
+    if q:
+        search = f"%{q}%"
+        query = query.filter((Movie.title.ilike(search)) | (Movie.description.ilike(search)))
     movies = query.all()
-    if not movies and not category_id:
+    if not movies and not category_id and not q:
         _seed(db); movies = db.query(Movie).all()
     return movies
+
+@app.get("/api/movies/{movie_id}", response_model=MovieSchema)
+def get_movie(movie_id: int, db: Session = Depends(get_db)):
+    ensure_db()
+    movie = db.query(Movie).filter(Movie.id == movie_id).first()
+    if not movie: raise HTTPException(status_code=404, detail="Archival Fragment Not Found")
+    return movie
+
+@app.get("/api/movies/{movie_id}/stream")
+def stream(movie_id: int, db: Session = Depends(get_db)):
+    ensure_db()
+    movie = db.query(Movie).filter(Movie.id == movie_id).first()
+    if not movie: raise HTTPException(status_code=404, detail="Stream Node Not Found")
+    
+    # Mock HLS / VLC Deep Link Support
+    stream_url = f"https://archive.org/download/{movie.title.lower().replace(' ', '-')}/video.mp4"
+    return {
+        "url": stream_url,
+        "vlc_url": f"vlc://{stream_url}",
+        "mx_url": f"intent:{stream_url}#Intent;package=com.mxtech.videoplayer.ad;end",
+        "quality_options": ["480p", "720p", "1080p"],
+        "status": "Decrypted"
+    }
 
 @app.get("/api/categories", response_model=List[CategorySchema])
 def list_categories(db: Session = Depends(get_db)):
@@ -217,5 +243,9 @@ def seed(db: Session = Depends(get_db)):
 @app.get("/api/auth/me", response_model=UserSchema)
 def me():
     return {"id": 1, "username": "Google Agent", "email": "user@google_core.com", "role": "user"}
+
+@app.get("/api/history", response_model=List[MovieSchema])
+def get_history(db: Session = Depends(get_db)):
+    return db.query(Movie).limit(10).all()
 
 handler = app

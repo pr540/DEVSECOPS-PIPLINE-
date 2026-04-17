@@ -407,7 +407,8 @@ const AuthPage = ({ onAuth }: { onAuth: (u: UserData) => void }) => {
 export default function App() {
   const [user, setUser] = useState<UserData | null>(null);
   const [playerMovie, setPlayerMovie] = useState<Movie | null>(null);
-  const [streamUrl, setStreamUrl] = useState('');
+  const [streamData, setStreamData] = useState<any>(null);
+  const [playerLoading, setPlayerLoading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('cine_token');
@@ -415,8 +416,17 @@ export default function App() {
   }, []);
 
   const handleStartStream = async (m: Movie) => {
-    setPlayerMovie(m); setStreamUrl('');
-    const res = await axios.get(`${API_BASE}/movies/${m.id}/stream`); setStreamUrl(res.data.url);
+    setPlayerMovie(m); 
+    setStreamData(null);
+    setPlayerLoading(true);
+    try {
+      const res = await axios.get(`${API_BASE}/movies/${m.id}/stream`); 
+      setStreamData(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setPlayerLoading(false);
+    }
   };
 
   return (
@@ -443,15 +453,33 @@ export default function App() {
                </Routes>
                <AnimatePresence>
                   {playerMovie && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-black flex items-center justify-center p-6 md:p-20 backdrop-blur-3xl">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-6 md:p-20 backdrop-blur-3xl">
                        <div className="w-full max-w-6xl relative">
-                          <button onClick={() => setPlayerMovie(null)} className="absolute -top-16 right-0 p-4 bg-white/5 hover:bg-red-500 rounded-2xl transition-all border border-white/10 group"><X className="group-hover:rotate-90 transition-transform" /></button>
-                          <div className="aspect-video rounded-[2rem] overflow-hidden shadow-[0_0_100px_rgba(147,51,234,0.3)] border border-white/10 bg-black">
-                             {streamUrl ? <VideoPlayer src={streamUrl} /> : <div className="h-full flex flex-col items-center justify-center gap-4 text-purple-600 font-black uppercase tracking-[1em] animate-pulse">
-                               <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
-                               Decrypting Stream...
-                             </div>}
+                          <button onClick={() => {setPlayerMovie(null); setStreamData(null);}} className="absolute -top-16 right-0 p-4 bg-white/5 hover:bg-red-500 rounded-2xl transition-all border border-white/10 group"><X className="group-hover:rotate-90 transition-transform" /></button>
+                          
+                          <div className="aspect-video rounded-[2rem] overflow-hidden shadow-[0_0_100px_rgba(147,51,234,0.3)] border border-white/10 bg-black group/player">
+                             {playerLoading ? (
+                               <div className="h-full flex flex-col items-center justify-center gap-6 text-purple-600 font-black uppercase tracking-[1em] animate-pulse">
+                                 <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin shadow-2xl shadow-purple-600/50" />
+                                 Decrypting Stream...
+                               </div>
+                             ) : streamData ? (
+                               <div className="relative h-full">
+                                  <VideoPlayer src={streamData.url} />
+                                  <div className="absolute top-6 right-6 flex gap-4 opacity-0 group-hover/player:opacity-100 transition-opacity">
+                                     <a href={streamData.vlc_url} className="px-6 py-3 bg-orange-600 text-white rounded-xl font-black uppercase text-[8px] flex items-center gap-2 shadow-xl hover:scale-110 transition-transform">Play in VLC</a>
+                                     <a href={streamData.mx_url} className="px-6 py-3 bg-blue-600 text-white rounded-xl font-black uppercase text-[8px] flex items-center gap-2 shadow-xl hover:scale-110 transition-transform">MX Player</a>
+                                  </div>
+                               </div>
+                             ) : (
+                               <div className="h-full flex flex-col items-center justify-center gap-4 text-red-500">
+                                  <Shield className="w-16 h-16 mb-4 animate-bounce" />
+                                  <p className="text-xl font-black uppercase italic tracking-widest text-center">Security Lock: Archival Node Offline</p>
+                                  <button onClick={() => setPlayerMovie(null)} className="mt-4 px-10 py-4 bg-white/10 rounded-2xl font-black uppercase text-xs">Acknowledge</button>
+                               </div>
+                             )}
                           </div>
+
                           <div className="mt-10 flex flex-col md:flex-row md:items-end justify-between gap-8">
                              <div>
                                <h2 className="text-5xl md:text-6xl font-black uppercase italic leading-none mb-4">{playerMovie.title}</h2>
@@ -462,6 +490,12 @@ export default function App() {
                                </div>
                              </div>
                              <div className="flex gap-4">
+                               <button 
+                                 onClick={() => { if(streamData?.vlc_url) window.location.href = streamData.vlc_url; }}
+                                 className="px-8 py-5 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 hover:text-white transition-all transform hover:-translate-y-1"
+                               >
+                                 VLC Link
+                               </button>
                                {playerMovie.download_url && (
                                  <a href={playerMovie.download_url} target="_blank" className="px-10 py-5 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-purple-600 hover:text-white transition-all transform hover:-translate-y-1 shadow-2xl flex items-center gap-3">
                                    <Monitor className="w-4 h-4" /> Download 1080p Node
