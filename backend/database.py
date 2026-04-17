@@ -79,41 +79,44 @@ def get_db():
 def _seed(db):
     # Precise Era Sync
     cat_names = ["Golden Archive (1990-2000)", "Modern Era (2001-2026)", "Upcoming Nodes"]
+    cats = {}
     for name in cat_names:
-        if not db.query(Category).filter(Category.name == name).first():
-            db.add(Category(name=name))
+        cat = db.query(Category).filter(Category.name == name).first()
+        if not cat:
+            cat = Category(name=name)
+            db.add(cat)
             db.commit()
+            db.refresh(cat)
+        cats[name] = cat
     
-    golden_cat = db.query(Category).filter(Category.name == "Golden Archive (1990-2000)").first()
-    modern_cat = db.query(Category).filter(Category.name == "Modern Era (2001-2026)").first()
-    upcoming_cat = db.query(Category).filter(Category.name == "Upcoming Nodes").first()
-
-    seed_movies = [
-        {"title": "Jurassic Park", "year": 1993, "language": "English", "cat": golden_cat},
-        {"title": "Titanic", "year": 1997, "language": "English", "cat": golden_cat},
-        {"title": "DDLJ", "year": 1995, "language": "Hindi", "cat": golden_cat},
-        {"title": "Baashha", "year": 1995, "language": "Tamil", "cat": golden_cat},
-        {"title": "Shiva", "year": 1989, "language": "Telugu", "cat": golden_cat},
-        {"title": "Vishwambhara", "year": 2025, "language": "Telugu", "cat": modern_cat},
-        {"title": "Pushpa 2", "year": 2024, "language": "Telugu", "cat": modern_cat},
-        {"title": "Kalki 2898 AD", "year": 2024, "language": "Telugu", "cat": modern_cat},
-        {"title": "Animal", "year": 2023, "language": "Hindi", "cat": modern_cat},
-        {"title": "Dune 2", "year": 2024, "language": "English", "cat": modern_cat},
-        {"title": "RRR", "year": 2022, "language": "Telugu", "cat": modern_cat},
-        {"title": "Devara Part 2", "year": 2026, "language": "Telugu", "cat": upcoming_cat},
-        {"title": "Spirit", "year": 2025, "language": "Telugu", "cat": upcoming_cat},
-        {"title": "The Avatar Core", "year": 2026, "language": "English", "cat": upcoming_cat},
+    seed_data = [
+        {"title": "Jurassic Park", "year": 1993, "language": "English", "cat": "Golden Archive (1990-2000)"},
+        {"title": "Titanic", "year": 1997, "language": "English", "cat": "Golden Archive (1990-2000)"},
+        {"title": "DDLJ", "year": 1995, "language": "Hindi", "cat": "Golden Archive (1990-2000)"},
+        {"title": "Baashha", "year": 1995, "language": "Tamil", "cat": "Golden Archive (1990-2000)"},
+        {"title": "Shiva", "year": 1989, "language": "Telugu", "cat": "Golden Archive (1990-2000)"},
+        {"title": "Vishwambhara", "year": 2025, "language": "Telugu", "cat": "Modern Era (2001-2026)"},
+        {"title": "Pushpa 2", "year": 2024, "language": "Telugu", "cat": "Modern Era (2001-2026)"},
+        {"title": "Kalki 2898 AD", "year": 2024, "language": "Telugu", "cat": "Modern Era (2001-2026)"},
+        {"title": "Animal", "year": 2023, "language": "Hindi", "cat": "Modern Era (2001-2026)"},
+        {"title": "Dune 2", "year": 2024, "language": "English", "cat": "Modern Era (2001-2026)"},
+        {"title": "RRR", "year": 2022, "language": "Telugu", "cat": "Modern Era (2001-2026)"},
+        {"title": "Devara Part 2", "year": 2026, "language": "Telugu", "cat": "Upcoming Nodes"},
+        {"title": "Spirit", "year": 2025, "language": "Telugu", "cat": "Upcoming Nodes"},
+        {"title": "The Avatar Core", "year": 2026, "language": "English", "cat": "Upcoming Nodes"},
     ]
 
-    for m in seed_movies:
+    for m in seed_data:
         if not db.query(Movie).filter(Movie.title == m["title"]).first():
-            db.add(Movie(
-                title=m["title"], description=f"Premium 1080p archival segment for {m['title']}.", rating=9.0,
-                image=f"https://images.unsplash.com/photo-{1540000000000 + m['year']}", language=m["language"], quality="1080p",
-                video_url=f"movies/{m['title'].lower().replace(' ', '_')}.m3u8",
-                download_url=f"https://archive.org/details/{m['title'].lower().replace(' ', '_')}",
-                year=m["year"], category_id=m["cat"].id
-            ))
+            cat = cats.get(m["cat"])
+            if cat:
+                db.add(Movie(
+                    title=m["title"], description=f"Premium 1080p archival segment for {m['title']}.", rating=9.0,
+                    image=f"https://images.unsplash.com/photo-{1540000000000 + m['year']}", language=m["language"], quality="1080p",
+                    video_url=f"movies/{m['title'].lower().replace(' ', '_')}.m3u8",
+                    download_url=f"https://archive.org/details/{m['title'].lower().replace(' ', '_')}",
+                    year=m["year"], category_id=cat.id
+                ))
     db.commit()
 
 # Create tables and auto-seed

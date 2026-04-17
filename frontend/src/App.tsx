@@ -119,8 +119,20 @@ const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const triggerSeed = async () => {
+    setLoading(true);
+    await axios.post(`${API_BASE}/movies/seed`);
+    const res = await axios.get(`${API_BASE}/movies`);
+    setMovies(res.data);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    axios.get(`${API_BASE}/movies`).then(res => { setMovies(res.data); setLoading(false); }).catch(() => setLoading(false));
+    axios.get(`${API_BASE}/movies`).then(res => { 
+       setMovies(res.data); 
+       setLoading(false);
+       if (res.data.length === 0) triggerSeed();
+    }).catch(() => setLoading(false));
   }, []);
 
   if (loading) return <div className="py-40 text-center text-purple-600 animate-pulse font-black uppercase text-xs tracking-[1em]">Establishing Neural Link...</div>;
@@ -154,9 +166,19 @@ const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
             </div>
          </div>
        )}
-       <div className="-mt-48 relative z-20 space-y-32 pb-32">
+       <div className={`${movies.length > 0 ? '-mt-48' : 'pt-40'} relative z-20 space-y-32 pb-32`}>
+          {movies.length === 0 && (
+            <div className="px-10 md:px-20">
+               <div className="glass-card p-20 rounded-[4rem] border-white/5 bg-gradient-to-br from-[#0a0a0a] to-[#111] text-center">
+                  <h2 className="text-4xl font-black uppercase italic mb-8">Neural <span className="text-purple-600">Sync</span> Required</h2>
+                  <p className="text-gray-500 font-bold uppercase tracking-widest mb-12">Archival fragments not detected in current sector.</p>
+                  <button onClick={triggerSeed} className="px-12 py-6 bg-purple-600 rounded-3xl font-black uppercase tracking-tighter hover:scale-105 transition-all shadow-2xl shadow-purple-600/30">Restore Database Core</button>
+               </div>
+            </div>
+          )}
+          
           {/* Era Rows */}
-          <MovieRow title="Present Cinematic Pulse" movies={present.length > 0 ? present : movies.slice(0, 4)} onSelect={onSelect} />
+          <MovieRow title="Present Cinematic Pulse" movies={present} onSelect={onSelect} />
           
           {/* Security & Monitoring Strip */}
           <div className="px-10 md:px-20">
