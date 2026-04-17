@@ -12,12 +12,24 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
-from .database import get_db, Movie, User, Category, WatchHistory, favorites, init_db, _seed
-from .auth_utils import (
-    get_password_hash, verify_password, create_access_token, 
-    get_current_user, get_current_admin, ACCESS_TOKEN_EXPIRE_MINUTES
-)
-from .storage import generate_presigned_url
+import sys
+sys.path.append(os.path.dirname(__file__))
+
+# Standardize Imports for Vercel
+try:
+    from database import get_db, Movie, User, Category, WatchHistory, favorites, init_db, _seed
+    from auth_utils import (
+        get_password_hash, verify_password, create_access_token, 
+        get_current_user, get_current_admin, ACCESS_TOKEN_EXPIRE_MINUTES
+    )
+    from storage import generate_presigned_url
+except ImportError:
+    from .database import get_db, Movie, User, Category, WatchHistory, favorites, init_db, _seed
+    from .auth_utils import (
+        get_password_hash, verify_password, create_access_token, 
+        get_current_user, get_current_admin, ACCESS_TOKEN_EXPIRE_MINUTES
+    )
+    from .storage import generate_presigned_url
 
 limiter = Limiter(key_func=get_remote_address)
 from starlette.middleware.base import BaseHTTPMiddleware
