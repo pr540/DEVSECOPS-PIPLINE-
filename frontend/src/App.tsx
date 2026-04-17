@@ -109,30 +109,31 @@ const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
 
   if (loading) return <div className="py-40 text-center text-purple-600 animate-pulse font-black uppercase text-xs tracking-[1em]">Establishing Neural Link...</div>;
 
-  const trending = movies.filter(m => m.rating >= 9.0);
+   const classics = movies.filter(m => m.year < 2000);
+  const moderns = movies.filter(m => m.year >= 2000);
   const latest = movies.filter(m => m.year >= 2024);
-  const global = movies.filter(m => m.language !== 'English');
+  const trending = movies.filter(m => m.rating >= 9.0);
 
   return (
     <div className="min-h-screen bg-[#050505]">
        {movies.length > 0 && (
          <div className="relative h-[85vh] w-full overflow-hidden">
-            <img src={trending[0]?.image || movies[0].image} className="w-full h-full object-cover opacity-40 scale-105" alt="" />
+            <img src={latest[0]?.image || movies[0].image} className="w-full h-full object-cover opacity-40 scale-105" alt="" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]/60" />
             <div className="absolute inset-y-0 left-0 w-full md:w-2/3 flex flex-col justify-center px-10 md:px-20">
                <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
                   <span className="bg-purple-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-8 inline-flex items-center gap-2 shadow-lg shadow-purple-600/30">
-                    <Star className="w-3 h-3 fill-current" /> Trending Synchronization
+                    <Star className="w-3 h-3 fill-current" /> Neural Synchronized Archive
                   </span>
-                  <h1 className="text-6xl md:text-8xl font-black uppercase italic leading-none mb-6 drop-shadow-2xl">{(trending[0]?.title || movies[0].title).replace(/ \(\d+\)/, '')}</h1>
-                  <p className="text-lg md:text-xl text-gray-300 font-medium max-w-2xl mb-12 leading-relaxed opacity-80">{trending[0]?.description || movies[0].description}</p>
+                  <h1 className="text-6xl md:text-8xl font-black uppercase italic leading-none mb-6 drop-shadow-2xl">{(latest[0]?.title || movies[0].title).replace(/ \(\d+\)/, '')}</h1>
+                  <p className="text-lg md:text-xl text-gray-300 font-medium max-w-2xl mb-12 leading-relaxed opacity-80">{latest[0]?.description || movies[0].description}</p>
                   <div className="flex flex-wrap gap-6">
-                    <button onClick={() => onSelect(trending[0] || movies[0])} className="bg-white text-black px-12 py-5 rounded-2xl font-black uppercase flex items-center gap-4 hover:bg-purple-600 hover:text-white transition-all transform hover:scale-105 shadow-2xl">
+                    <button onClick={() => onSelect(latest[0] || movies[0])} className="bg-white text-black px-12 py-5 rounded-2xl font-black uppercase flex items-center gap-4 hover:bg-purple-600 hover:text-white transition-all transform hover:scale-105 shadow-2xl">
                        <Play className="w-6 h-6 fill-current" /> Stream in 1080p
                     </button>
                     <div className="flex items-center gap-4 px-8 py-5 border border-white/10 rounded-2xl backdrop-blur-xl bg-white/5">
                         <Monitor className="w-5 h-5 text-purple-500" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Direct Download Active</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Archival Download Node Active</span>
                     </div>
                   </div>
                </motion.div>
@@ -140,19 +141,20 @@ const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
          </div>
        )}
        <div className="-mt-48 relative z-20 space-y-32 pb-32">
-          <MovieRow title="Trending Syncs" movies={trending.length > 0 ? trending : movies} onSelect={onSelect} />
+          {/* Categorized Eras */}
+          <MovieRow title="90's Golden Archive" movies={classics.length > 0 ? classics : movies.slice(0, 4)} onSelect={onSelect} />
           
           {/* Security & Monitoring Strip */}
           <div className="px-10 md:px-20">
-             <div className="glass-card p-10 md:p-16 rounded-[3rem] border-white/5 bg-[#0a0a0a]/80 flex flex-col md:flex-row items-center justify-between gap-12 overflow-hidden relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+             <div className="glass-card p-10 md:p-16 rounded-[4rem] border-white/5 bg-gradient-to-br from-[#0a0a0a] to-[#111] flex flex-col md:flex-row items-center justify-between gap-12 overflow-hidden relative group">
+                <div className="absolute inset-0 bg-purple-600/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                 <div className="relative">
-                   <h2 className="text-4xl font-black uppercase italic mb-4">Neural <span className="text-purple-600">Shield</span> Active</h2>
+                   <h2 className="text-4xl font-black uppercase italic mb-4">Neural <span className="text-purple-600">Shield</span> Hub</h2>
                    <div className="flex gap-10">
                       {[
-                        { label: 'WAF Status', val: 'Protected', color: 'text-green-500' },
-                        { label: 'Uptime', val: '99.99%', color: 'text-purple-500' },
-                        { label: 'SCA Scans', val: 'Passed', color: 'text-blue-500' }
+                        { label: 'Cloud Status', val: 'Synchronized', color: 'text-green-500' },
+                        { label: 'Core Link', val: '100% Secure', color: 'text-purple-500' },
+                        { label: 'Scan Cycle', val: 'Completed', color: 'text-blue-500' }
                       ].map(stat => (
                         <div key={stat.label}>
                            <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1">{stat.label}</p>
@@ -162,17 +164,22 @@ const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
                    </div>
                 </div>
                 <div className="flex items-center gap-6">
-                   <div className="flex -space-x-3">
-                      {[1,2,3,4].map(i => <div key={i} className="w-12 h-12 rounded-full border-4 border-[#0a0a0a] bg-gray-800 flex items-center justify-center text-[10px] font-bold">U{i}</div>)}
+                   <div className="flex -space-x-4">
+                      {[1,2,3,4,5].map(i => <div key={i} className="w-14 h-14 rounded-full border-[6px] border-[#0a0a0a] bg-stone-900 flex items-center justify-center text-[10px] font-bold">A{i}</div>)}
                    </div>
-                   <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Secure Agents<br/>Synchronized</p>
+                   <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">Authorized<br/>Neutral Nodes</p>
                 </div>
-                <Link to="/profile" className="px-10 py-5 bg-white text-black rounded-2xl font-black uppercase text-xs hover:bg-purple-600 hover:text-white transition-all shadow-xl whitespace-nowrap">View Security Core</Link>
+                <button 
+                   onClick={async () => { await axios.post(`${API_BASE}/movies/seed`); window.location.reload(); }}
+                   className="px-10 py-5 bg-white text-black rounded-3xl font-black uppercase text-xs hover:bg-purple-600 hover:text-white transition-all shadow-xl whitespace-nowrap"
+                >
+                   Force Sync Database
+                </button>
              </div>
           </div>
 
-          <MovieRow title="Latest Released Nodes" movies={latest.length > 0 ? latest : movies.slice(0, 5)} onSelect={onSelect} />
-          <MovieRow title="Global Multilingual Cores" movies={global.length > 0 ? global : movies.slice().reverse()} onSelect={onSelect} />
+          <MovieRow title="Modern Blockbusters (2000-Present)" movies={moderns.length > 0 ? moderns : movies.slice(0, 5)} onSelect={onSelect} />
+          <MovieRow title="Trending Syncs" movies={trending.length > 0 ? trending : movies.slice(0, 6)} onSelect={onSelect} />
        </div>
     </div>
   );
@@ -282,17 +289,28 @@ const ProfilePage = ({ user, onSelect }: { user: UserData, onSelect: (m: Movie) 
                    <h2 className="text-2xl font-black uppercase italic mb-8 flex items-center gap-4">
                       <Monitor className="text-purple-600" /> Synchronized Archives
                    </h2>
-                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-                      {history.map(m => (
-                        <motion.div key={m.id} whileHover={{ y: -5 }} onClick={() => onSelect(m)} className="glass-card p-3 rounded-2xl cursor-pointer group">
-                           <img src={m.image} className="aspect-[2/3] rounded-xl object-cover mb-4 grayscale group-hover:grayscale-0 transition-all" alt="" />
-                           <h3 className="text-[10px] font-black uppercase truncate">{m.title}</h3>
-                        </motion.div>
-                      ))}
-                      {history.length === 0 && Array.from({length: 3}).map((_, i) => (
-                        <div key={i} className="aspect-[2/3] rounded-2xl border-2 border-dashed border-white/5 flex items-center justify-center text-[8px] font-black text-gray-700 uppercase p-6 text-center">Empty Fragment Slot</div>
-                      ))}
-                   </div>
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                       {history.map(m => (
+                         <motion.div key={m.id} whileHover={{ y: -5 }} className="glass-card p-6 rounded-3xl border-white/5 bg-white/5 flex gap-6 group">
+                            <img src={m.image} className="w-24 aspect-[2/3] rounded-xl object-cover grayscale group-hover:grayscale-0 transition-all shadow-xl" alt="" />
+                            <div className="flex-1 flex flex-col justify-between py-2">
+                               <div>
+                                  <h3 className="text-sm font-black uppercase truncate mb-1">{m.title}</h3>
+                                  <p className="text-[8px] font-bold text-gray-500 uppercase tracking-widest">{m.year} • 1080p</p>
+                               </div>
+                               <div className="flex gap-3 mt-4">
+                                  <button onClick={() => onSelect(m)} className="flex-1 bg-purple-600 text-white py-2 rounded-lg text-[8px] font-black uppercase tracking-tighter hover:bg-purple-500 transition-colors">Stream Node</button>
+                                  {m.download_url && (
+                                    <a href={m.download_url} target="_blank" className="flex-1 bg-white/10 text-white py-2 rounded-lg text-[8px] font-black uppercase tracking-tighter hover:bg-white/20 transition-colors text-center border border-white/5">Download</a>
+                                  )}
+                               </div>
+                            </div>
+                         </motion.div>
+                       ))}
+                       {history.length === 0 && Array.from({length: 4}).map((_, i) => (
+                         <div key={i} className="aspect-[4/1] rounded-3xl border-2 border-dashed border-white/5 flex items-center justify-center text-[8px] font-black text-gray-700 uppercase p-6 text-center">Empty Neural Segment Slot</div>
+                       ))}
+                    </div>
                 </div>
              </div>
 
