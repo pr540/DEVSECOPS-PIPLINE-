@@ -139,8 +139,38 @@ const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
             </div>
          </div>
        )}
-       <div className="-mt-48 relative z-20 space-y-20 pb-20">
+       <div className="-mt-48 relative z-20 space-y-32 pb-32">
           <MovieRow title="Trending Syncs" movies={trending.length > 0 ? trending : movies} onSelect={onSelect} />
+          
+          {/* Security & Monitoring Strip */}
+          <div className="px-10 md:px-20">
+             <div className="glass-card p-10 md:p-16 rounded-[3rem] border-white/5 bg-[#0a0a0a]/80 flex flex-col md:flex-row items-center justify-between gap-12 overflow-hidden relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                <div className="relative">
+                   <h2 className="text-4xl font-black uppercase italic mb-4">Neural <span className="text-purple-600">Shield</span> Active</h2>
+                   <div className="flex gap-10">
+                      {[
+                        { label: 'WAF Status', val: 'Protected', color: 'text-green-500' },
+                        { label: 'Uptime', val: '99.99%', color: 'text-purple-500' },
+                        { label: 'SCA Scans', val: 'Passed', color: 'text-blue-500' }
+                      ].map(stat => (
+                        <div key={stat.label}>
+                           <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1">{stat.label}</p>
+                           <p className={`text-xl font-black uppercase ${stat.color}`}>{stat.val}</p>
+                        </div>
+                      ))}
+                   </div>
+                </div>
+                <div className="flex items-center gap-6">
+                   <div className="flex -space-x-3">
+                      {[1,2,3,4].map(i => <div key={i} className="w-12 h-12 rounded-full border-4 border-[#0a0a0a] bg-gray-800 flex items-center justify-center text-[10px] font-bold">U{i}</div>)}
+                   </div>
+                   <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Secure Agents<br/>Synchronized</p>
+                </div>
+                <Link to="/profile" className="px-10 py-5 bg-white text-black rounded-2xl font-black uppercase text-xs hover:bg-purple-600 hover:text-white transition-all shadow-xl whitespace-nowrap">View Security Core</Link>
+             </div>
+          </div>
+
           <MovieRow title="Latest Released Nodes" movies={latest.length > 0 ? latest : movies.slice(0, 5)} onSelect={onSelect} />
           <MovieRow title="Global Multilingual Cores" movies={global.length > 0 ? global : movies.slice().reverse()} onSelect={onSelect} />
        </div>
@@ -211,32 +241,68 @@ const ExplorePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
 };
 
 
-const ProfilePage = ({ user }: { user: UserData }) => {
+const ProfilePage = ({ user, onSelect }: { user: UserData, onSelect: (m: Movie) => void }) => {
+  const [history, setHistory] = useState<Movie[]>([]);
+
+  useEffect(() => {
+    axios.get(`${API_BASE}/history`).then(res => setHistory(res.data)).catch(() => {});
+  }, []);
+
   return (
-    <div className="pt-32 px-20 min-h-screen">
-       <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-10 mb-16">
-             <div className="w-32 h-32 bg-gradient-to-tr from-purple-600 to-blue-500 rounded-full flex items-center justify-center text-4xl font-black uppercase italic">{user.username[0]}</div>
-             <div>
-                <h1 className="text-5xl font-black uppercase italic mb-2">{user.username}</h1>
-                <p className="text-purple-600 font-black uppercase tracking-[0.2em] text-xs">{user.email}</p>
-             </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-             <div className="glass-card p-10 border-white/5 bg-[#0a0a0a]">
-                <div className="flex items-center gap-4 mb-8 text-purple-500"><Shield className="w-6 h-6" /><h2 className="text-xl font-black uppercase italic">Security Shield</h2></div>
-                <div className="space-y-4">
-                   {[ { label: 'Auth Protocol', status: 'JWT-Secured' }, { label: 'Encryption', status: 'AES-256' }, { label: 'Hacking Protection', status: 'WAF-Active' } ].map(s => (
-                     <div key={s.label} className="flex justify-between border-b border-white/5 pb-2"><span className="text-[10px] font-bold text-gray-500 uppercase">{s.label}</span><span className="text-[10px] font-black uppercase text-green-500">{s.status}</span></div>
-                   ))}
+    <div className="pt-32 px-10 md:px-20 min-h-screen pb-20">
+       <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center gap-12 mb-20 bg-white/5 p-16 rounded-[4rem] border border-white/5 backdrop-blur-3xl">
+             <div className="w-40 h-40 bg-gradient-to-tr from-purple-600 to-blue-500 rounded-full flex items-center justify-center text-6xl font-black uppercase italic shadow-2xl shadow-purple-600/30">{user.username[0]}</div>
+             <div className="text-center md:text-left">
+                <h1 className="text-6xl font-black uppercase italic mb-4 tracking-tighter">{user.username}</h1>
+                <div className="flex flex-wrap justify-center md:justify-start gap-4">
+                   <span className="bg-purple-600/20 text-purple-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-purple-600/20">{user.email}</span>
+                   <span className="bg-green-600/20 text-green-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-green-600/20">Verified Agent</span>
                 </div>
              </div>
-             <div className="glass-card p-10 border-white/5 bg-[#0a0a0a]">
-                <div className="flex items-center gap-4 mb-8 text-blue-500"><Monitor className="w-6 h-6" /><h2 className="text-xl font-black uppercase italic">Monitoring Core</h2></div>
-                <div className="space-y-4">
-                   {[ { label: 'Vercel Deployment', status: 'Production 3.1.0' }, { label: 'Stream Speed', status: '12 GBPS' }, { label: 'Resource Load', status: 'Optimized' } ].map(s => (
-                     <div key={s.label} className="flex justify-between border-b border-white/5 pb-2"><span className="text-[10px] font-bold text-gray-500 uppercase">{s.label}</span><span className="text-[10px] font-black uppercase text-blue-400">{s.status}</span></div>
-                   ))}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+             <div className="lg:col-span-2 space-y-12">
+                <div>
+                   <h2 className="text-2xl font-black uppercase italic mb-8 flex items-center gap-4">
+                      <Monitor className="text-purple-600" /> Synchronized Archives
+                   </h2>
+                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+                      {history.map(m => (
+                        <motion.div key={m.id} whileHover={{ y: -5 }} onClick={() => onSelect(m)} className="glass-card p-3 rounded-2xl cursor-pointer group">
+                           <img src={m.image} className="aspect-[2/3] rounded-xl object-cover mb-4 grayscale group-hover:grayscale-0 transition-all" alt="" />
+                           <h3 className="text-[10px] font-black uppercase truncate">{m.title}</h3>
+                        </motion.div>
+                      ))}
+                      {history.length === 0 && Array.from({length: 3}).map((_, i) => (
+                        <div key={i} className="aspect-[2/3] rounded-2xl border-2 border-dashed border-white/5 flex items-center justify-center text-[8px] font-black text-gray-700 uppercase p-6 text-center">Empty Fragment Slot</div>
+                      ))}
+                   </div>
+                </div>
+             </div>
+
+             <div className="space-y-10">
+                <div className="glass-card p-10 rounded-[2.5rem] border-white/5 bg-[#0a0a0a]">
+                   <div className="flex items-center gap-4 mb-8 text-purple-500"><Shield className="w-6 h-6" /><h2 className="text-xl font-black uppercase italic">Security Shield</h2></div>
+                   <div className="space-y-4">
+                      {[ { label: 'Auth Protocol', status: 'JWT-Secured' }, { label: 'Encryption', status: 'AES-256' }, { label: 'Hacking Protection', status: 'WAF-Active' } ].map(s => (
+                        <div key={s.label} className="flex justify-between border-b border-white/5 pb-2"><span className="text-[10px] font-bold text-gray-500 uppercase">{s.label}</span><span className="text-[10px] font-black uppercase text-green-500">{s.status}</span></div>
+                      ))}
+                   </div>
+                </div>
+
+                <div className="glass-card p-10 rounded-[2.5rem] border-white/5 bg-[#0a0a0a]">
+                   <h2 className="text-xl font-black uppercase italic mb-8 flex items-center gap-4 text-blue-500"><Monitor className="w-5 h-5" /> Download Core</h2>
+                   <div className="space-y-4">
+                      {history.filter(m => m.download_url).slice(0, 3).map(m => (
+                        <a key={m.id} href={m.download_url} target="_blank" className="flex items-center justify-between p-4 bg-white/5 rounded-2xl hover:bg-purple-600 transition-all group">
+                           <span className="text-[10px] font-black uppercase truncate w-2/3">{m.title}</span>
+                           <span className="text-[8px] font-black bg-white/10 px-2 py-1 rounded group-hover:bg-white/20 whitespace-nowrap">FIX LINK</span>
+                        </a>
+                      ))}
+                      {history.filter(m => m.download_url).length === 0 && <p className="text-[10px] font-bold text-gray-600 uppercase text-center py-4">No download fragments indexed</p>}
+                   </div>
                 </div>
              </div>
           </div>
@@ -244,6 +310,7 @@ const ProfilePage = ({ user }: { user: UserData }) => {
     </div>
   );
 };
+
 
 const AuthPage = ({ onAuth }: { onAuth: (u: UserData) => void }) => {
   const [formData, setFormData] = useState({ username: '', email: '', password: '' });
@@ -302,7 +369,7 @@ export default function App() {
                <Routes>
                   <Route path="/" element={<HomePage onSelect={handleStartStream} />} />
                   <Route path="/explore" element={<ExplorePage onSelect={handleStartStream} />} />
-                  <Route path="/profile" element={<ProfilePage user={user} />} />
+                  <Route path="/profile" element={<ProfilePage user={user} onSelect={handleStartStream} />} />
                   <Route path="*" element={<Navigate to="/" />} />
                </Routes>
                <AnimatePresence>
