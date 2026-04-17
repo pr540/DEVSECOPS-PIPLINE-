@@ -61,9 +61,10 @@ const VideoPlayer = ({ src }: { src: string }) => {
       const videoElement = document.createElement("video-js");
       videoElement.classList.add('vjs-big-play-centered', 'vjs-netflix-skin');
       videoRef.current.appendChild(videoElement);
+      const isHls = src.includes('.m3u8');
       playerRef.current = videojs(videoElement, {
         autoplay: true, controls: true, responsive: true, fluid: true,
-        sources: [{ src, type: 'application/x-mpegURL' }]
+        sources: [{ src, type: isHls ? 'application/x-mpegURL' : 'video/mp4' }]
       });
     }
     return () => { if (playerRef.current) { playerRef.current.dispose(); playerRef.current = null; } };

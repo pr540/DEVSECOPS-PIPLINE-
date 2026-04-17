@@ -13,7 +13,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 # --- CONFIG & DB ---
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:////tmp/cinebook.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///cinebook.db" if os.name == 'nt' else "sqlite:////tmp/cinebook.db")
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+pg8000://", 1)
 elif DATABASE_URL.startswith("postgresql://"):
@@ -139,8 +139,29 @@ def _seed(db: Session):
             {"title": "Kalki Ultra Preview", "year": 2024, "language": "Telugu", "cat": "Modern Era (2001-2026)",
              "ia_id": "project-k-kalki-2898-ad-glimpse-prabhas-kamal-haasan-amitabh-bachchan-deepika", "img": "https://images.unsplash.com/photo-1535016120720-40c646bebbcf?q=80&w=800"},
         ]
+        # --- SEED HARDCODED GOLD LIST ---
+        for m in seed_data:
+            existing = db.query(Movie).filter(Movie.title == m["title"]).first()
+            ia_id = m.get("ia_id", "default")
+            stream_url = f"https://archive.org/download/{ia_id}/{ia_id}.mp4"
+            if not existing:
+                cat = cats.get(m["cat"])
+                if cat:
+                    db.add(Movie(
+                        title=m["title"], description=f"Authentic {m['year']} cinematic fragment from the neural archive.", rating=9.5,
+                        image=m["img"], language=m["language"], quality="1080p",
+                        video_url=stream_url,
+                        download_url=f"https://archive.org/details/{ia_id}",
+                        year=m["year"], category_id=cat.id
+                    ))
+            else:
+                existing.video_url = stream_url
+                existing.image = m["img"]
+        db.commit()
+
         # --- NEURAL BULK IMPORT (FROM JSON) ---
-        json_path = os.path.join(os.getcwd(), "data", "movies_archive.json")
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        json_path = os.path.join(base_dir, "..", "data", "movies_archive.json")
         if os.path.exists(json_path):
             with open(json_path, "r") as f:
                 bulk_data = json.load(f)
@@ -152,7 +173,7 @@ def _seed(db: Session):
                             ia_id = m.get("ia_id", "default")
                             db.add(Movie(
                                 title=m["title"], 
-                                description=f"Global archival node. Language: {m['language']}. Country: {m['country']}.",
+                                description=f"Global archival node. Language: {m['language']}. Country: {m.get('country','Global')}.",
                                 rating=m.get("rating", 9.0),
                                 image=f"https://images.unsplash.com/photo-1542204172-3c1f837066ad?q=80&w=800",
                                 language=m["language"], quality="1080p",
