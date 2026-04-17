@@ -1,0 +1,222 @@
+[
+  {
+    "title": "Interstellar",
+    "year": 2014,
+    "language": "English",
+    "country": "USA",
+    "genre": "Sci-Fi",
+    "runtime": 169,
+    "rating": 8.7,
+    "ia_id": "interstellar-2014-full-movie",
+    "category": "Modern Era (2001-2026)"
+  },
+  {
+    "title": "The Dark Knight",
+    "year": 2008,
+    "language": "English",
+    "country": "USA",
+    "genre": "Action",
+    "runtime": 152,
+    "rating": 9.0,
+    "ia_id": "the-dark-knight-2008",
+    "category": "Modern Era (2001-2026)"
+  },
+  {
+    "title": "Parasite",
+    "year": 2019,
+    "language": "Korean",
+    "country": "South Korea",
+    "genre": "Thriller",
+    "runtime": 132,
+    "rating": 8.5,
+    "ia_id": "parasite-2019",
+    "category": "Modern Era (2001-2026)"
+  },
+  {
+    "title": "RRR",
+    "year": 2022,
+    "language": "Telugu",
+    "country": "India",
+    "genre": "Action",
+    "runtime": 187,
+    "rating": 7.8,
+    "ia_id": "rrr-movie-full",
+    "category": "Modern Era (2001-2026)"
+  },
+  {
+    "title": "Spirited Away",
+    "year": 2001,
+    "language": "Japanese",
+    "country": "Japan",
+    "genre": "Animation",
+    "runtime": 125,
+    "rating": 8.6,
+    "ia_id": "spirited-away-2001",
+    "category": "Modern Era (2001-2026)"
+  },
+  {
+    "title": "Avatar 3: Fire and Ash",
+    "year": 2025,
+    "language": "English",
+    "country": "USA",
+    "genre": "Sci-Fi",
+    "runtime": 180,
+    "rating": 0.0,
+    "ia_id": "avatar-3-teaser",
+    "category": "Upcoming Nodes"
+  },
+  {
+    "title": "Avengers: Doomsday",
+    "year": 2026,
+    "language": "English",
+    "country": "USA",
+    "genre": "Action",
+    "runtime": 150,
+    "rating": 0.0,
+    "ia_id": "avengers-doomsday-trailer",
+    "category": "Upcoming Nodes"
+  },
+  {
+    "title": "Pulp Fiction",
+    "year": 1994,
+    "language": "English",
+    "country": "USA",
+    "genre": "Crime",
+    "runtime": 154,
+    "rating": 8.9,
+    "ia_id": "pulp-fiction-1994",
+    "category": "Golden Archive (1990-2000)"
+  },
+  {
+    "title": "Dilwale Dulhania Le Jayenge",
+    "year": 1995,
+    "language": "Hindi",
+    "country": "India",
+    "genre": "Romance",
+    "runtime": 189,
+    "rating": 8.0,
+    "ia_id": "ddlj-1995",
+    "category": "Golden Archive (1990-2000)"
+  },
+  {
+    "title": "The Matrix",
+    "year": 1999,
+    "language": "English",
+    "country": "USA",
+    "genre": "Sci-Fi",
+    "runtime": 136,
+    "rating": 8.7,
+    "ia_id": "the-matrix-1999",
+    "category": "Golden Archive (1990-2000)"
+  },
+  {
+    "title": "Oppenheimer",
+    "year": 2023,
+    "language": "English",
+    "country": "USA",
+    "genre": "Biography",
+    "runtime": 180,
+    "rating": 8.4,
+    "ia_id": "oppenheimer-2023",
+    "category": "Modern Era (2001-2026)"
+  },
+  {
+    "title": "Dune: Part Two",
+    "year": 2024,
+    "language": "English",
+    "country": "USA",
+    "genre": "Sci-Fi",
+    "runtime": 166,
+    "rating": 8.6,
+    "ia_id": "dune-part-two",
+    "category": "Modern Era (2001-2026)"
+  },
+  {
+    "title": "Kalki 2898 AD",
+    "year": 2024,
+    "language": "Telugu",
+    "country": "India",
+    "genre": "Sci-Fi",
+    "runtime": 181,
+    "rating": 7.6,
+    "ia_id": "kalki-2898-ad",
+    "category": "Modern Era (2001-2026)"
+  },
+  {
+    "title": "Oldboy",
+    "year": 2003,
+    "language": "Korean",
+    "country": "South Korea",
+    "genre": "Action",
+    "runtime": 120,
+    "rating": 8.4,
+    "ia_id": "oldboy-2003",
+    "category": "Modern Era (2001-2026)"
+  },
+  {
+    "title": "Titanic",
+    "year": 1997,
+    "language": "English",
+    "country": "USA",
+    "genre": "Romance",
+    "runtime": 194,
+    "rating": 7.9,
+    "ia_id": "titanic-1997",
+    "category": "Golden Archive (1990-2000)"
+  },
+  {
+    "title": "Toy Story",
+    "year": 1995,
+    "language": "English",
+    "country": "USA",
+    "genre": "Animation",
+    "runtime": 81,
+    "rating": 8.3,
+    "ia_id": "toy-story-1995",
+    "category": "Golden Archive (1990-2000)"
+  },
+  {
+    "title": "Your Name",
+    "year": 2016,
+    "language": "Japanese",
+    "country": "Japan",
+    "genre": "Animation",
+    "runtime": 106,
+    "rating": 8.4,
+    "ia_id": "your-name-2016",
+    "category": "Modern Era (2001-2026)"
+  },
+  {
+    "title": "Toxic",
+    "year": 2025,
+    "language": "Kannada",
+    "country": "India",
+    "genre": "Action",
+    "runtime": 160,
+    "rating": 0.0,
+    "ia_id": "toxic-yash-teaser",
+    "category": "Upcoming Nodes"
+  },
+  {
+    "title": "War 2",
+    "year": 2025,
+    "language": "Hindi",
+    "country": "India",
+    "genre": "Action",
+    "runtime": 155,
+    "rating": 0.0,
+    "ia_id": "war-2-hrithik-ntr",
+    "category": "Upcoming Nodes"
+  },
+  {
+    "title": "Squid Game Movie",
+    "year": 2026,
+    "language": "Korean",
+    "country": "South Korea",
+    "genre": "Thriller",
+    "runtime": 140,
+    "rating": 0.0,
+    "ia_id": "squid-game-2026",
+    "category": "Upcoming Nodes"
+  }
+]

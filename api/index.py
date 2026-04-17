@@ -139,30 +139,31 @@ def _seed(db: Session):
             {"title": "Kalki Ultra Preview", "year": 2024, "language": "Telugu", "cat": "Modern Era (2001-2026)",
              "ia_id": "project-k-kalki-2898-ad-glimpse-prabhas-kamal-haasan-amitabh-bachchan-deepika", "img": "https://images.unsplash.com/photo-1535016120720-40c646bebbcf?q=80&w=800"},
         ]
-        for m in seed_data:
-            existing = db.query(Movie).filter(Movie.title == m["title"]).first()
-            ia_id = m.get("ia_id", "default")
-            stream_url = f"https://archive.org/download/{ia_id}/{ia_id}.mp4" if "ia_id" in m else f"https://archive.org/download/{m['title'].lower().replace(' ', '-')}/video.mp4"
-            
-            if not existing:
-                cat = cats.get(m["cat"])
-                if cat:
-                    try:
-                        db.add(Movie(
-                            title=m["title"], description=f"Authentic {m['year']} cinematic fragment from the neural archive.", rating=9.5,
-                            image=m["img"], language=m["language"], quality="1080p",
-                            video_url=stream_url,
-                            download_url=f"https://archive.org/details/{ia_id}",
-                            year=m["year"], category_id=cat.id
-                        )); db.commit()
-                    except: db.rollback()
-            else:
-                # Update to real working identifiers
-                existing.image = m["img"]
-                existing.video_url = stream_url
-                existing.download_url = f"https://archive.org/details/{ia_id}"
-                db.commit()
-    except: db.rollback()
+        # --- NEURAL BULK IMPORT (FROM JSON) ---
+        json_path = os.path.join(os.getcwd(), "data", "movies_archive.json")
+        if os.path.exists(json_path):
+            with open(json_path, "r") as f:
+                bulk_data = json.load(f)
+                for m in bulk_data:
+                    existing = db.query(Movie).filter(Movie.title == m["title"]).first()
+                    if not existing:
+                        cat = cats.get(m.get("category", "Modern Era (2001-2026)"))
+                        if cat:
+                            ia_id = m.get("ia_id", "default")
+                            db.add(Movie(
+                                title=m["title"], 
+                                description=f"Global archival node. Language: {m['language']}. Country: {m['country']}.",
+                                rating=m.get("rating", 9.0),
+                                image=f"https://images.unsplash.com/photo-1542204172-3c1f837066ad?q=80&w=800",
+                                language=m["language"], quality="1080p",
+                                video_url=f"https://archive.org/download/{ia_id}/{ia_id}.mp4",
+                                download_url=f"https://archive.org/details/{ia_id}",
+                                year=m["year"], category_id=cat.id
+                            ))
+            db.commit()
+    except Exception as e:
+        print(f"[!] Seeding Error: {e}")
+        db.rollback()
 
 _db_ready = False
 def ensure_db():
