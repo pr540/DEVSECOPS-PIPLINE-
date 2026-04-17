@@ -146,33 +146,33 @@ const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
    const present = movies.filter(m => m.year >= 2024 && m.year <= 2025);
   const upcoming = movies.filter(m => m.year >= 2026);
 
-  return (
-    <div className="min-h-screen bg-[#050505]">
+  return     <div className="min-h-screen bg-[#050505]">
        {movies.length > 0 && (
-         <div className="relative h-[85vh] w-full overflow-hidden">
-            <img src={present[0]?.image || movies[0].image} className="w-full h-full object-cover opacity-40 scale-105" alt="" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]/60" />
-            <div className="absolute inset-y-0 left-0 w-full md:w-2/3 flex flex-col justify-center px-10 md:px-20">
+         <div className="relative h-[70vh] w-full overflow-hidden flex items-end pb-32">
+            <img src={present[0]?.image || movies[0].image} className="absolute inset-0 w-full h-full object-cover opacity-30 scale-105" alt="" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-[#050505]/80" />
+            <div className="relative z-10 w-full px-10 md:px-20 max-w-7xl mx-auto">
                <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-                  <span className="bg-purple-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-8 inline-flex items-center gap-2 shadow-lg shadow-purple-600/30">
+                  <span className="bg-purple-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-6 inline-flex items-center gap-2 shadow-lg shadow-purple-600/30">
                     <Star className="w-3 h-3 fill-current" /> Neural Synchronized Archive
                   </span>
-                  <h1 className="text-6xl md:text-8xl font-black uppercase italic leading-none mb-6 drop-shadow-2xl">{(present[0]?.title || movies[0].title).replace(/ \(\d+\)/, '')}</h1>
-                  <p className="text-lg md:text-xl text-gray-300 font-medium max-w-2xl mb-12 leading-relaxed opacity-80">{present[0]?.description || movies[0].description}</p>
-                  <div className="flex flex-wrap gap-6">
-                    <button onClick={() => onSelect(present[0] || movies[0])} className="bg-white text-black px-12 py-5 rounded-2xl font-black uppercase flex items-center gap-4 hover:bg-purple-600 hover:text-white transition-all transform hover:scale-105 shadow-2xl">
-                       <Play className="w-6 h-6 fill-current" /> Stream in 1080p
+                  <h1 className="text-6xl md:text-7xl font-black uppercase italic leading-none mb-4 drop-shadow-2xl">{(present[0]?.title || movies[0].title).replace(/ \(\d+\)/, '')}</h1>
+                  <p className="text-base md:text-lg text-gray-400 font-medium max-w-xl mb-10 leading-relaxed opacity-90">{present[0]?.description || movies[0].description}</p>
+                  <div className="flex flex-wrap gap-4">
+                    <button onClick={() => onSelect(present[0] || movies[0])} className="bg-white text-black px-10 py-4 rounded-xl font-black uppercase text-sm flex items-center gap-3 hover:bg-purple-600 hover:text-white transition-all transform hover:scale-105 shadow-2xl">
+                       <Play className="w-5 h-5 fill-current" /> Stream in 1080p
                     </button>
-                    <div className="flex items-center gap-4 px-8 py-5 border border-white/10 rounded-2xl backdrop-blur-xl bg-white/5">
-                        <Monitor className="w-5 h-5 text-purple-500" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Archival Download Node Active</span>
+                    <div className="flex items-center gap-3 px-6 py-4 border border-white/10 rounded-xl backdrop-blur-xl bg-white/5">
+                        <Monitor className="w-4 h-4 text-purple-500" />
+                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">Archival Download Node Active</span>
                     </div>
                   </div>
                </motion.div>
             </div>
          </div>
        )}
-       <div className={`${movies.length > 0 ? '-mt-48' : 'pt-40'} relative z-20 space-y-32 pb-32`}>
+       <div className="relative z-20 space-y-24 pb-32">
+>
           {movies.length === 0 && (
             <div className="px-10 md:px-20">
                <div className="glass-card p-20 rounded-[4rem] border-white/5 bg-gradient-to-br from-[#0a0a0a] to-[#111] text-center">
