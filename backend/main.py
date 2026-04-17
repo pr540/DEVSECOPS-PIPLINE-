@@ -48,12 +48,6 @@ app.add_middleware(
 @app.on_event("startup")
 def startup():
     init_db()
-    from .database import SessionLocal
-    db = SessionLocal()
-    try:
-        _seed(db)
-    finally:
-        db.close()
 
 # --- Pydantic Schemas ---
 class CategoryBase(BaseModel):
@@ -223,52 +217,8 @@ def admin_upload(
     db.commit()
     return {"status": "Movie uploaded successfully", "id": movie.id}
 
-def _seed(db: Session):
-    # Precise Era Sync
-    cat_names = ["Golden Archive (1990-2000)", "Modern Era (2001-2026)", "Upcoming Nodes"]
-    for name in cat_names:
-        if not db.query(Category).filter(Category.name == name).first():
-            db.add(Category(name=name))
-            db.commit()
-    
-    golden_cat = db.query(Category).filter(Category.name == "Golden Archive (1990-2000)").first()
-    modern_cat = db.query(Category).filter(Category.name == "Modern Era (2001-2026)").first()
-    upcoming_cat = db.query(Category).filter(Category.name == "Upcoming Nodes").first()
-
-    # Re-seed with Exact Epochs
-    seed_movies = [
-        # --- 1990 - 2000 ---
-        {"title": "Jurassic Park", "description": "Classic dinosaur adventure.", "rating": 9.3, "image": "https://images.unsplash.com/photo-1542204172-3c1f837066ad", "language": "English", "quality": "1080p", "year": 1993, "cat": golden_cat},
-        {"title": "DDLJ", "description": "Iconic Bollywood romance.", "rating": 9.5, "image": "https://images.unsplash.com/photo-1536440136628-849c177e76a1", "language": "Hindi", "quality": "1080p", "year": 1995, "cat": golden_cat},
-        {"title": "Baashha", "description": "Rajinikanth's cult classic.", "rating": 9.4, "image": "https://images.unsplash.com/photo-1531259683007-016a7b628fc3", "language": "Tamil", "quality": "1080p", "year": 1995, "cat": golden_cat},
-        {"title": "Shiva", "description": "Intense college drama.", "rating": 9.2, "image": "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", "language": "Telugu", "quality": "1080p", "year": 1989, "cat": golden_cat},
-        {"title": "Titanic", "description": "Epic tragedy.", "rating": 8.8, "image": "https://images.unsplash.com/photo-1594909122845-11baa439b7bf", "language": "English", "quality": "1080p", "year": 1997, "cat": golden_cat},
-
-        # --- 2001 - 2026 ---
-        {"title": "Vishwambhara", "description": "Megastar Chiranjeevi's epic.", "rating": 9.6, "image": "https://images.unsplash.com/photo-1542204172-3c1f837066ad", "language": "Telugu", "quality": "1080p", "year": 2025, "cat": modern_cat},
-        {"title": "Pushpa 2", "description": "The rule begins.", "rating": 9.4, "image": "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb", "language": "Telugu", "quality": "1080p", "year": 2024, "cat": modern_cat},
-        {"title": "Kalki 2898 AD", "description": "Mythology sci-fi.", "rating": 9.2, "image": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", "language": "Telugu", "quality": "1080p", "year": 2024, "cat": modern_cat},
-        {"title": "Animal", "description": "Dark thriller.", "rating": 8.5, "image": "https://images.unsplash.com/photo-1534447677768-be436bb09401", "language": "Hindi", "quality": "1080p", "year": 2023, "cat": modern_cat},
-        {"title": "Dune 2", "description": "Interstellar journey.", "rating": 9.3, "image": "https://images.unsplash.com/photo-1535016120720-40c646bebbcf", "language": "English", "quality": "1080p", "year": 2024, "cat": modern_cat},
-        {"title": "RRR", "description": "Revolutionary epic.", "rating": 9.0, "image": "https://images.unsplash.com/photo-1531259683007-016a7b628fc3", "language": "Telugu", "quality": "1080p", "year": 2022, "cat": modern_cat},
-        
-        # --- UPCOMING ---
-        {"title": "Devara Part 2", "description": "Coastal war continues.", "rating": 9.7, "image": "https://images.unsplash.com/photo-1536440136628-849c177e76a1", "language": "Telugu", "quality": "1080p", "year": 2026, "cat": upcoming_cat},
-        {"title": "The Avatar Core", "description": "Deep sea exploration.", "rating": 8.9, "image": "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa", "language": "English", "quality": "1080p", "year": 2026, "cat": upcoming_cat},
-        {"title": "Spirit", "description": "Prabhas in intense cop role.", "rating": 9.8, "image": "https://images.unsplash.com/photo-1509248961158-e54f6934749c", "language": "Telugu", "quality": "1080p", "year": 2025, "cat": upcoming_cat},
-    ]
-
-    for m in seed_movies:
-        if not db.query(Movie).filter(Movie.title == m["title"]).first():
-            if m["cat"]:
-                db.add(Movie(
-                    title=m["title"], description=m["description"], rating=m["rating"],
-                    image=m["image"], language=m["language"], quality="1080p",
-                    video_url=f"movies/{m['title'].lower().replace(' ', '_')}.m3u8",
-                    download_url=f"https://archive.org/details/{m['title'].lower().replace(' ', '_')}",
-                    year=m["year"], category_id=m["cat"].id
-                ))
-    db.commit()
+# API Inclusion
+app.include_router(api)
 
 
 
