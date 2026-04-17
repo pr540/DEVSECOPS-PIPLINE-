@@ -232,8 +232,11 @@ const ExplorePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
           ))}
        </div>
        {movies.length === 0 && (
-         <div className="text-center py-40">
-           <p className="text-gray-500 font-black uppercase tracking-widest animate-pulse">No Neural Fragments Found</p>
+         <div className="text-center py-40 bg-white/5 rounded-[4rem] border border-dashed border-white/10 mx-6 md:mx-0">
+           <p className="text-gray-500 font-black uppercase tracking-widest animate-pulse mb-8">No Neural Fragments Found</p>
+           <button onClick={async () => { await axios.post(`${API_BASE}/movies/seed`); load(); }} className="px-10 py-5 bg-purple-600 rounded-2xl font-black uppercase text-xs hover:scale-105 transition-all shadow-2xl shadow-purple-600/20">
+              Synchronize Archive
+           </button>
          </div>
        )}
     </div>
