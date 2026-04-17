@@ -72,14 +72,30 @@ const VideoPlayer = ({ src }: { src: string }) => {
 
 const MovieRow = ({ title, movies, onSelect }: { title: string, movies: Movie[], onSelect: (m: Movie) => void }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    if (isHovered) return;
+    const interval = setInterval(() => {
+      if (scrollRef.current) {
+        if (scrollRef.current.scrollLeft + scrollRef.current.clientWidth >= scrollRef.current.scrollWidth) {
+          scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          scrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+        }
+      }
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [isHovered]);
+
   const scroll = (dir: 'left' | 'right') => scrollRef.current?.scrollBy({ left: dir === 'left' ? -400 : 400, behavior: 'smooth' });
 
   return (
-    <div className="mb-12 relative group/row">
+    <div className="mb-12 relative group/row" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
        <h2 className="text-xl font-bold mb-6 px-10 flex items-center gap-3"><span className="w-1 h-6 bg-purple-600 rounded-full" />{title}</h2>
        <div className="relative">
-          <button onClick={() => scroll('left')} className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-[calc(100%-24px)] bg-black/60 opacity-0 group-hover/row:opacity-100 transition-opacity flex items-center justify-center"><ChevronLeft /></button>
-          <div ref={scrollRef} className="flex gap-4 overflow-x-hidden px-10">
+          <button onClick={() => scroll('left')} className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-[calc(100%-24px)] bg-black/60 opacity-Group-hover/row:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-md"><ChevronLeft /></button>
+          <div ref={scrollRef} className="flex gap-4 overflow-x-hidden px-10 scroll-smooth">
              {movies.map(movie => (
                <motion.div key={movie.id} whileHover={{ scale: 1.05, zIndex: 20 }} className="flex-shrink-0 w-64 aspect-[2/3] rounded-xl overflow-hidden cursor-pointer relative group" onClick={() => onSelect(movie)}>
                  <img src={movie.image} className="w-full h-full object-cover" alt="" />
@@ -93,7 +109,7 @@ const MovieRow = ({ title, movies, onSelect }: { title: string, movies: Movie[],
                </motion.div>
              ))}
           </div>
-          <button onClick={() => scroll('right')} className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-[calc(100%-24px)] bg-black/60 opacity-0 group-hover/row:opacity-100 transition-opacity flex items-center justify-center"><ChevronRight /></button>
+          <button onClick={() => scroll('right')} className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-[calc(100%-24px)] bg-black/60 opacity-Group-hover/row:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-md"><ChevronRight /></button>
        </div>
     </div>
   );
@@ -188,22 +204,29 @@ const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
 
 const ExplorePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [filters, setFilters] = useState({ language: '', year: '' });
+  const [categories, setCategories] = useState<{id: number, name: string}[]>([]);
+  const [filters, setFilters] = useState({ language: '', year: '', category_id: '' });
   const [search, setSearch] = useState('');
 
   const load = async () => {
     const res = await axios.get(`${API_BASE}/movies`, { params: { 
       language: filters.language || undefined, 
       year_from: filters.year ? parseInt(filters.year) : undefined,
+      category_id: filters.category_id || undefined,
       q: search || undefined
     }});
     setMovies(res.data);
   };
+
+  useEffect(() => {
+    axios.get(`${API_BASE}/categories`).then(res => setCategories(res.data));
+  }, []);
+
   useEffect(() => { load(); }, [filters, search]);
 
   return (
     <div className="pt-40 px-6 md:px-20 min-h-screen pb-20">
-       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
+       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
           <div>
             <h1 className="text-5xl font-black uppercase italic tracking-tighter mb-2">Neural <span className="text-purple-600">Archive</span></h1>
             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em]">Full HD 1080p Visual Repository</p>
@@ -219,9 +242,19 @@ const ExplorePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
              </select>
              <select onChange={e => setFilters({...filters, year: e.target.value})} className="bg-white/5 border border-white/10 rounded-2xl px-8 py-4 text-[10px] font-black uppercase outline-none focus:border-purple-500 cursor-pointer">
                 <option value="" className="bg-black">All Years</option>
-                {Array.from({ length: 2026 - 1900 }, (_, i) => 2026 - i).map(y => <option key={y} value={y.toString()} className="bg-black">{y}</option>)}
+                {Array.from({ length: 2026 - 1980 }, (_, i) => 2026 - i).map(y => <option key={y} value={y.toString()} className="bg-black">{y}</option>)}
              </select>
           </div>
+       </div>
+
+       {/* Category Tabs */}
+       <div className="flex gap-4 mb-16 overflow-x-auto pb-4">
+          <button onClick={() => setFilters({...filters, category_id: ''})} className={`px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filters.category_id === '' ? 'bg-purple-600 shadow-xl shadow-purple-600/20' : 'bg-white/5 border border-white/10 hover:bg-white/10'}`}>Global Core</button>
+          {categories.map(cat => (
+            <button key={cat.id} onClick={() => setFilters({...filters, category_id: cat.id.toString()})} className={`px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filters.category_id === cat.id.toString() ? 'bg-purple-600 shadow-xl shadow-purple-600/20' : 'bg-white/5 border border-white/10 hover:bg-white/10'}`}>
+               {cat.name}
+            </button>
+          ))}
        </div>
        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8">
           {movies.map(m => (
