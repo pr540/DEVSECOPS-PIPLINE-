@@ -252,6 +252,9 @@ def admin_upload(
 # API Inclusion
 app.include_router(api)
 
+# Vercel Handler Export
+handler = app
+
 
 
 

@@ -11,9 +11,11 @@ load_dotenv()
 # Use SQLite by default for local dev, PostgreSQL for production
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:////tmp/cinebook.db")
 if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+pg8000://", 1)
+elif DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+pg8000://", 1)
 
-print(f"Neural Engine: Targeting Archive Core... (Type: {'Postgres' if 'postgresql' in DATABASE_URL else 'SQLite'})")
+print(f"Neural Engine: Targeting Archive Core... (Type: {'Postgres (pg8000)' if 'pg8000' in DATABASE_URL else 'SQLite'})")
 
 from sqlalchemy import create_engine
 engine = create_engine(
