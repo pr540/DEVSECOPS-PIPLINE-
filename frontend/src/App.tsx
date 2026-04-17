@@ -6,7 +6,7 @@ import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import { 
   Star, X, User, 
-  LogOut, Play, Search,
+  LogOut, Play,
   ChevronRight, ChevronLeft,
   Monitor, Shield
 
