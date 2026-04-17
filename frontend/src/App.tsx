@@ -146,7 +146,8 @@ const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
    const present = movies.filter(m => m.year >= 2024 && m.year <= 2025);
   const upcoming = movies.filter(m => m.year >= 2026);
 
-  return     <div className="min-h-screen bg-[#050505]">
+  return (
+    <div className="min-h-screen bg-[#050505]">
        {movies.length > 0 && (
          <div className="relative h-[70vh] w-full overflow-hidden flex items-end pb-32">
             <img src={present[0]?.image || movies[0].image} className="absolute inset-0 w-full h-full object-cover opacity-30 scale-105" alt="" />
@@ -172,7 +173,6 @@ const HomePage = ({ onSelect }: { onSelect: (m: Movie) => void }) => {
          </div>
        )}
        <div className="relative z-20 space-y-24 pb-32">
->
           {movies.length === 0 && (
             <div className="px-10 md:px-20">
                <div className="glass-card p-20 rounded-[4rem] border-white/5 bg-gradient-to-br from-[#0a0a0a] to-[#111] text-center">
